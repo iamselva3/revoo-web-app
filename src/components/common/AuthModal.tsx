@@ -36,28 +36,13 @@ export const AuthModal: React.FC = () => {
               setIsGoogleLoading(true);
               try {
                 const data = await authApi.googleAuth({ idToken: response.credential });
-                loginWithAuthData(data.accessToken, data.refreshToken, data.user);
-              } catch {
-                try {
-                  const base64Url = response.credential.split('.')[1];
-                  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                  const jsonPayload = decodeURIComponent(
-                    atob(base64)
-                      .split('')
-                      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                      .join('')
-                  );
-                  const parsed = JSON.parse(jsonPayload);
-                  loginWithAuthData(response.credential, 'google_refresh', {
-                    id: parsed.sub || 'cust_google',
-                    email: parsed.email,
-                    fullName: parsed.name,
-                    avatarUrl: parsed.picture,
-                    phone: '',
-                  });
-                } catch {
-                  setErrorMsg('Google Sign-In failed to verify.');
+                if (data.accessToken) {
+                  loginWithAuthData(data.accessToken, data.refreshToken, data.user);
+                } else {
+                  setErrorMsg('Authentication error: Unable to retrieve session from server.');
                 }
+              } catch (err: any) {
+                setErrorMsg(err.response?.data?.message || 'Google Sign-In failed on server.');
               } finally {
                 setIsGoogleLoading(false);
               }
@@ -90,17 +75,18 @@ export const AuthModal: React.FC = () => {
                 });
                 const googleUser = await userInfoRes.json();
                 const authRes = await authApi.googleAuth({
+                  accessToken: tokenResponse.access_token,
                   email: googleUser.email,
                   fullName: googleUser.name,
                   avatarUrl: googleUser.picture,
                 });
-                loginWithAuthData(authRes.accessToken, authRes.refreshToken, authRes.user);
-              } catch {
-                loginWithAuthData(tokenResponse.access_token, 'google_refresh', {
-                  id: 'cust_google_' + Date.now(),
-                  fullName: 'Google User',
-                  phone: '',
-                });
+                if (authRes.accessToken) {
+                  loginWithAuthData(authRes.accessToken, authRes.refreshToken, authRes.user);
+                } else {
+                  setErrorMsg('Server returned empty authentication token.');
+                }
+              } catch (err: any) {
+                setErrorMsg(err.response?.data?.message || 'Google login failed to authenticate with backend.');
               } finally {
                 setIsGoogleLoading(false);
               }

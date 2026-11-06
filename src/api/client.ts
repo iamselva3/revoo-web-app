@@ -12,8 +12,17 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('revoo_customer_token');
-  if (token) {
+  if (
+    token &&
+    token !== 'undefined' &&
+    token !== 'null' &&
+    typeof token === 'string' &&
+    token.trim().length > 10
+  ) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    // Prevent carrying stale/broken token
+    delete config.headers.Authorization;
   }
   return config;
 });
