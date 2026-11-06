@@ -18,6 +18,18 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear token if server rejects it as invalid
+      localStorage.removeItem('revoo_customer_token');
+      localStorage.removeItem('revoo_customer_user');
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Resolves an image URL (relative uploads or remote CDN) cleanly to a loadable URL
  */

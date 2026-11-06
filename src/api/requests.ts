@@ -30,13 +30,21 @@ export const requestApi = {
   },
 
   getMyRequests: async (): Promise<BuybackRequest[]> => {
-    const res = await apiClient.get('/requests/my');
-    return res.data?.data || [];
+    try {
+      const res = await apiClient.get('/requests/my');
+      return res.data?.data || [];
+    } catch {
+      return [];
+    }
   },
 
-  getRequestById: async (id: string): Promise<BuybackRequest> => {
-    const res = await apiClient.get(`/requests/my/${id}`);
-    return res.data?.data;
+  getRequestById: async (id: string): Promise<BuybackRequest | null> => {
+    try {
+      const res = await apiClient.get(`/requests/my/${id}`);
+      return res.data?.data || null;
+    } catch {
+      return null;
+    }
   },
 };
 

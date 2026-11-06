@@ -12,7 +12,16 @@ export const geoApi = {
   getStates: async (): Promise<string[]> => {
     try {
       const res = await apiClient.get('/geo/states');
-      return res.data?.data || [];
+      const raw = res.data?.data || [];
+      if (Array.isArray(raw)) {
+        return raw
+          .map((item: any) => (typeof item === 'string' ? item : item.name || item.state || ''))
+          .filter((name: string) => Boolean(name && name.trim()));
+      }
+      return [
+        'Tamil Nadu', 'Karnataka', 'Kerala', 'Maharashtra', 'Telangana',
+        'Andhra Pradesh', 'Delhi', 'Gujarat', 'Uttar Pradesh', 'West Bengal'
+      ];
     } catch {
       return [
         'Tamil Nadu', 'Karnataka', 'Kerala', 'Maharashtra', 'Telangana',
@@ -26,7 +35,13 @@ export const geoApi = {
       const res = await apiClient.get('/geo/cities', {
         params: state ? { state } : undefined,
       });
-      return res.data?.data || [];
+      const raw = res.data?.data || [];
+      if (Array.isArray(raw)) {
+        return raw
+          .map((item: any) => (typeof item === 'string' ? item : item.city || item.name || ''))
+          .filter((city: string) => Boolean(city && city.trim()));
+      }
+      return ['Chennai', 'Coimbatore', 'Madurai', 'Trichy', 'Salem', 'Srivilliputhur', 'Bangalore', 'Mumbai'];
     } catch {
       return ['Chennai', 'Coimbatore', 'Madurai', 'Trichy', 'Salem', 'Srivilliputhur', 'Bangalore', 'Mumbai'];
     }

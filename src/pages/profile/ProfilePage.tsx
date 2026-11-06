@@ -24,7 +24,10 @@ export const ProfilePage: React.FC = () => {
   useEffect(() => {
     if (user) {
       requestApi.getMyRequests().then((list) => {
-        setRequests(list);
+        setRequests(list || []);
+        setIsLoading(false);
+      }).catch(() => {
+        setRequests([]);
         setIsLoading(false);
       });
     } else {

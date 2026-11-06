@@ -31,12 +31,15 @@ export const TrackOrderPage: React.FC = () => {
   useEffect(() => {
     if (user) {
       requestApi.getMyRequests().then((list) => {
-        setRequests(list);
-        if (list.length > 0) {
+        const safeList = list || [];
+        setRequests(safeList);
+        if (safeList.length > 0) {
           const reqId = searchParams.get('id');
-          const found = reqId ? list.find((r) => r.requestNumber === reqId || r._id === reqId) : list[0];
-          setSelectedRequest(found || list[0]);
+          const found = reqId ? safeList.find((r) => r.requestNumber === reqId || r._id === reqId) : safeList[0];
+          setSelectedRequest(found || safeList[0]);
         }
+      }).catch(() => {
+        setRequests([]);
       });
     }
   }, [user, searchParams]);

@@ -409,9 +409,14 @@ export const DoorstepPickupPage: React.FC = () => {
                   onChange={(e) => setState(e.target.value)}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  {statesList.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
+                  {statesList.map((s, idx) => {
+                    const label = typeof s === 'string' ? s : (s as any)?.name || (s as any)?.state || '';
+                    return (
+                      <option key={`${label}-${idx}`} value={label}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -428,9 +433,12 @@ export const DoorstepPickupPage: React.FC = () => {
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
                 <datalist id="city-options">
-                  {citiesList.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
+                  {citiesList.map((c, idx) => {
+                    const label = typeof c === 'string' ? c : (c as any)?.city || (c as any)?.name || '';
+                    return (
+                      <option key={`${label}-${idx}`} value={label} />
+                    );
+                  })}
                 </datalist>
               </div>
             </div>
