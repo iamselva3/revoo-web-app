@@ -60,7 +60,7 @@ export const BuyStorePage: React.FC = () => {
         <div className="max-w-xl space-y-2 relative z-10">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              REVOO Certified Refurbished
+              Genie Certified Refurbished
             </span>
             <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
               ⚡ Up to 70% Off MRP
@@ -70,7 +70,7 @@ export const BuyStorePage: React.FC = () => {
             Smartphones That Feel <span className="text-emerald-400">Brand New</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-300">
-            Every phone undergoes a strict 32-point inspection, comes with a 12-month REVOO warranty, and 7-day replacement guarantee.
+            Every phone undergoes a strict 32-point inspection, comes with a 12-month Genie warranty, and 7-day replacement guarantee.
           </p>
         </div>
       </div>
@@ -194,7 +194,7 @@ export const BuyStorePage: React.FC = () => {
                   <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 space-y-1">
                     <div className="flex items-center gap-1.5 text-emerald-700 font-semibold">
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>12-Month REVOO Warranty</span>
+                      <span>12-Month Genie Warranty</span>
                     </div>
                   </div>
 

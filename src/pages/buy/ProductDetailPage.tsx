@@ -210,7 +210,7 @@ export const ProductDetailPage: React.FC = () => {
               </div>
               <div>
                 <h4 className="text-sm font-extrabold text-slate-900">
-                  {product.warrantyMonths || 12}-Month REVOO Warranty
+                  {product.warrantyMonths || 12}-Month Genie Warranty
                 </h4>
                 <p className="text-xs text-slate-600 mt-0.5">
                   Comprehensive hardware & software coverage with doorstep repair or replacement.

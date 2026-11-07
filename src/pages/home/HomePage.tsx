@@ -88,7 +88,7 @@ export const HomePage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent flex items-center">
                   <div className="max-w-2xl px-6 sm:px-12 py-8 space-y-3 sm:space-y-4">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
-                      <Sparkles className="w-3.5 h-3.5" /> REVOO Direct Buyback
+                      <Sparkles className="w-3.5 h-3.5" /> Genie Direct Buyback
                     </span>
                     <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
                       {b.title}
@@ -286,7 +286,7 @@ export const HomePage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  REVOO Verified
+                  Genie Verified
                 </span>
                 <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                   ⚡ 1-Year Warranty
@@ -388,7 +388,7 @@ export const HomePage: React.FC = () => {
               Zero Stress • 100% Transparency
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              How Selling Works on REVOO
+              How Selling Works on Genie
             </h2>
             <p className="text-xs sm:text-sm text-slate-300">
               Three simple steps from getting a quote to receiving direct payment in your bank.
@@ -456,7 +456,7 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {reviews.slice(0, 3).map((r, idx) => (
               <div
-                key={r._id || r.customerName || `review-${idx}`}
+                key={r._id || `review-${r.customerName || 'customer'}-${idx}`}
                 className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-card space-y-3 flex flex-col justify-between"
               >
                 <div className="space-y-2">

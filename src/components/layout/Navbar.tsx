@@ -32,25 +32,24 @@ export const Navbar: React.FC = () => {
           {/* Logo & City Chip */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-700 via-emerald-600 to-teal-500 p-0.5 shadow-emerald-sm group-hover:shadow-emerald-glow transition">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-purple-600 to-pink-500 p-0.5 shadow-md group-hover:shadow-lg transition">
                 <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center overflow-hidden">
                   <img
-                    src="/revoo_logo.png"
-                    alt="REVOO Logo"
-                    className="w-7 h-7 object-contain drop-shadow"
+                    src="/genie_logo.png"
+                    alt="Genie Logo"
+                    className="w-8 h-8 object-contain drop-shadow"
                     onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
+                      (e.target as HTMLImageElement).src = '/revoo_logo.png';
                     }}
                   />
-                  <Smartphone className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition" />
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 group-hover:text-emerald-700 transition">
-                  REV<span className="text-emerald-600">OO</span>
+                <span className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-purple-600 to-pink-500 bg-clip-text text-transparent group-hover:opacity-90 transition">
+                  Genie
                 </span>
                 <span className="text-[9px] uppercase tracking-widest font-extrabold text-slate-400 -mt-1">
-                  Fintech Buyback
+                  Smartphone Buyback
                 </span>
               </div>
             </Link>
@@ -143,7 +142,7 @@ export const Navbar: React.FC = () => {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 z-50 animate-slide-up">
                     <div className="p-2.5 border-b border-slate-100">
                       <p className="text-xs font-bold text-slate-900 truncate">
-                        {user.fullName || 'REVOO Customer'}
+                        {user.fullName || 'Genie Customer'}
                       </p>
                       <p className="text-[11px] text-slate-500 font-mono mt-0.5">
                         +91 {user.phone}

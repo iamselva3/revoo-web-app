@@ -250,7 +250,7 @@ export const AuthModal: React.FC = () => {
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            Welcome to REVOO
+            Welcome to Genie
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Doorstep smartphone buyback & certified refurbished store
@@ -501,7 +501,7 @@ export const AuthModal: React.FC = () => {
 
           <div className="mt-5 text-center">
             <p className="text-[11px] text-slate-400">
-              By continuing, you agree to REVOO's <a href="#" className="underline text-slate-600">Terms of Service</a> & <a href="#" className="underline text-slate-600">Privacy Policy</a>
+              By continuing, you agree to Genie's <a href="#" className="underline text-slate-600">Terms of Service</a> & <a href="#" className="underline text-slate-600">Privacy Policy</a>
             </p>
           </div>
         </div>

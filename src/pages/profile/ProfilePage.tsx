@@ -65,7 +65,7 @@ export const ProfilePage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-900 tracking-tight">
-              {user.fullName || 'REVOO Customer'}
+              {user.fullName || 'Genie Customer'}
             </h1>
             <p className="text-xs text-slate-500 font-mono mt-0.5 flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-slate-400" />

@@ -71,19 +71,21 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 py-12">
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
-                <Smartphone className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-pink-500 p-0.5">
+                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center overflow-hidden">
+                  <img src="/genie_logo.png" alt="Genie" className="w-7 h-7 object-contain" />
+                </div>
               </div>
-              <span className="text-2xl font-black text-white tracking-tight">
-                REV<span className="text-emerald-500">OO</span>
+              <span className="text-2xl font-black bg-gradient-to-r from-amber-500 via-purple-600 to-pink-500 bg-clip-text text-transparent tracking-tight">
+                Genie
               </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              India's smart circular fintech platform for used smartphones. Sell instantly at top market rates or buy certified refurbished devices with a 1-year warranty.
+              India's premier circular fintech platform for used smartphones. Sell instantly at top market rates with guaranteed doorstep cash and certified data wipe.
             </p>
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-800/60 w-fit">
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 bg-amber-950/60 px-3 py-1.5 rounded-xl border border-amber-800/60 w-fit">
               <CheckCircle className="w-4 h-4" />
-              <span>Certified Refurbished & Buyback Partner</span>
+              <span>Certified Buyback Marketplace</span>
             </div>
           </div>
 
@@ -102,12 +104,12 @@ export const Footer: React.FC = () => {
 
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
-              Buy Refurbished
+              Certified Devices
             </h4>
             <ul className="space-y-2.5 text-xs text-slate-400 font-medium">
               <li><Link to="/buy" className="hover:text-emerald-400 transition">Pristine Grade Phones</Link></li>
               <li><Link to="/buy" className="hover:text-emerald-400 transition">32-Point Quality Inspected</Link></li>
-              <li><Link to="/buy" className="hover:text-emerald-400 transition">12-Month REVOO Warranty</Link></li>
+              <li><Link to="/buy" className="hover:text-emerald-400 transition">12-Month Genie Warranty</Link></li>
               <li><Link to="/buy" className="hover:text-emerald-400 transition">7-Day Replacement Policy</Link></li>
               <li><Link to="/track" className="hover:text-emerald-400 transition">Track Delivery</Link></li>
             </ul>
@@ -118,15 +120,15 @@ export const Footer: React.FC = () => {
               Customer Support
             </h4>
             <div className="flex items-center gap-2.5 text-xs text-slate-400">
-              <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+              <Phone className="w-4 h-4 text-amber-400 shrink-0" />
               <span>+91 94420 54321 (9 AM - 8 PM IST)</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs text-slate-400">
-              <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>support@revoo.in</span>
+              <Mail className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>support@genie.in</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs text-slate-400">
-              <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
+              <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
               <span>Coimbatore & Chennai Regional Hubs, Tamil Nadu</span>
             </div>
           </div>
@@ -134,7 +136,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Credits */}
         <div className="pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-          <p>© {new Date().getFullYear()} REVOO Technologies Pvt. Ltd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Genie Technologies Pvt. Ltd. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-slate-400 transition">Privacy Policy</a>
             <span>•</span>

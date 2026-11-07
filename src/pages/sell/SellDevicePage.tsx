@@ -39,6 +39,25 @@ export const SellDevicePage: React.FC = () => {
   const [selectedVariant, setSelectedVariant] = useState<DeviceVariant | null>(null);
 
   // Condition assessment state
+  const [isPhoneWorking, setIsPhoneWorking] = useState<boolean>(true);
+  const [isTouchscreenWorking, setIsTouchscreenWorking] = useState<boolean>(true);
+  const [isDisplayOriginal, setIsDisplayOriginal] = useState<boolean>(true);
+  const [hasValidWarranty, setHasValidWarranty] = useState<boolean>(false);
+  const [backPanelCondition, setBackPanelCondition] = useState<string>('NO_DEFECTS');
+  const [sidePanelCondition, setSidePanelCondition] = useState<string>('NO_DEFECTS');
+  const [hardwareFaults, setHardwareFaults] = useState<Record<string, boolean>>({
+    powerButtonNotWorking: false,
+    volumeButtonNotWorking: false,
+    chargingPortNotWorking: false,
+    earSpeakerNotWorking: false,
+    proximitySensorNotWorking: false,
+    wifiOrBluetoothNotWorking: false,
+    vibratorNotWorking: false,
+  });
+  const [hasOriginalBox, setHasOriginalBox] = useState<boolean>(true);
+  const [hasOriginalCharger, setHasOriginalCharger] = useState<boolean>(true);
+
+  // Legacy fallback compatibility
   const [displayCondition, setDisplayCondition] = useState<string>('FLAWLESS');
   const [bodyCondition, setBodyCondition] = useState<string>('FLAWLESS');
   const [batteryCondition, setBatteryCondition] = useState<string>('EXCELLENT');
@@ -50,8 +69,6 @@ export const SellDevicePage: React.FC = () => {
     chargingPortFaulty: false,
     wirelessOrBluetoothFaulty: false,
   });
-  const [hasOriginalBox, setHasOriginalBox] = useState<boolean>(true);
-  const [hasOriginalCharger, setHasOriginalCharger] = useState<boolean>(true);
 
   // Calculated valuation
   const [calculatedQuote, setCalculatedQuote] = useState<number>(0);
@@ -116,41 +133,84 @@ export const SellDevicePage: React.FC = () => {
     setIsCalculating(true);
 
     const conditionsPayload = {
+      basicQuestions: {
+        isPhoneWorking,
+        isTouchscreenWorking,
+        isDisplayOriginal,
+        hasValidWarranty,
+      },
+      backPanelCondition,
+      sidePanelCondition,
+      hardwareFaults,
+      hasOriginalBox,
+      hasOriginalCharger,
+      isPhoneWorking,
+      isTouchscreenWorking,
+      isDisplayOriginal,
+      hasValidWarranty,
+      ...hardwareFaults,
+      // Legacy fallback
       display: displayCondition,
       body: bodyCondition,
       battery: batteryCondition,
       functional: functionalFaults,
-      accessories: {
-        hasOriginalBox,
-        hasOriginalCharger,
-      },
     };
 
     try {
       const res = await catalogueApi.calculateEstimate({
         modelId: selectedModel._id,
-        variantCapacity: selectedVariant?.capacity || '128GB',
-        conditions: conditionsPayload,
+        modelName: selectedModel.name,
+        brandName: selectedBrand?.name,
+        variantCapacity: selectedVariant?.capacity || 'Standard',
+        basePrice: (selectedModel.basePrice || 22000) + (selectedVariant?.priceModifier || 0),
+        declaredCondition: conditionsPayload,
+        ...conditionsPayload,
       });
 
       let quote = res.indicativeValuation || 0;
       if (quote <= 0 && selectedModel.basePrice) {
-        // Safe local estimation fallback
-        quote = Math.round(selectedModel.basePrice * 0.75 + (selectedVariant?.priceModifier || 0));
+        // DOFY fallback calculation with exact percentages
+        const bp = (selectedModel.basePrice || 22000) + (selectedVariant?.priceModifier || 0);
+        let pen = 0;
+        if (!isPhoneWorking) pen += bp * 0.60;
+        if (!isTouchscreenWorking) pen += bp * 0.15;
+        if (!isDisplayOriginal) pen += bp * 0.10;
+        if (!hasValidWarranty) pen += bp * 0.05;
+
+        if (backPanelCondition === 'MINOR_SCRATCHES') pen += bp * 0.03;
+        else if (backPanelCondition === 'HEAVY_SCRATCHES') pen += bp * 0.08;
+        else if (backPanelCondition === 'BACK_PANEL_BROKEN') pen += bp * 0.15;
+
+        if (sidePanelCondition === 'MINOR_DENT_OR_SCRATCHES') pen += bp * 0.03;
+        else if (sidePanelCondition === 'HEAVY_DENT') pen += bp * 0.08;
+        else if (sidePanelCondition === 'BENT_OR_BROKEN') pen += bp * 0.12;
+
+        if (hardwareFaults.powerButtonNotWorking) pen += bp * 0.05;
+        if (hardwareFaults.volumeButtonNotWorking) pen += bp * 0.03;
+        if (hardwareFaults.chargingPortNotWorking) pen += bp * 0.08;
+        if (hardwareFaults.earSpeakerNotWorking) pen += bp * 0.03;
+        if (hardwareFaults.proximitySensorNotWorking) pen += bp * 0.03;
+        if (hardwareFaults.wifiOrBluetoothNotWorking) pen += bp * 0.05;
+        if (hardwareFaults.vibratorNotWorking) pen += bp * 0.02;
+
+        let bonus = 0;
+        if (hasOriginalCharger) bonus += 500;
+        if (hasOriginalBox) bonus += 500;
+
+        quote = Math.max(1000, Math.round(bp - pen + bonus));
       }
       setCalculatedQuote(quote);
       setStep(5);
-      // Trigger celebration confetti
+      // Trigger celebration confetti with Genie colors
       confetti({
-        particleCount: 80,
+        particleCount: 90,
         spread: 60,
         origin: { y: 0.6 },
-        colors: ['#10b981', '#059669', '#34d399', '#70C000'],
+        colors: ['#F59E0B', '#8B5CF6', '#EC4899', '#D97706'],
       });
     } catch {
-      // Local fallback
-      const fallbackQuote = Math.round((selectedModel.basePrice || 30000) * 0.72);
-      setCalculatedQuote(fallbackQuote);
+      const bp = selectedModel.basePrice || 22000;
+      setCalculatedQuote(Math.round(bp * 0.74));
       setStep(5);
     } finally {
       setIsCalculating(false);
@@ -164,15 +224,26 @@ export const SellDevicePage: React.FC = () => {
       device: {
         brand: selectedBrand.name,
         modelName: selectedModel.name,
+        modelId: selectedModel._id,
         variant: selectedVariant?.capacity || 'Standard',
         imageUrl: selectedModel.imageUrl || `/uploads/devices/${selectedModel.slug}.png`,
       },
       conditions: {
+        basicQuestions: {
+          isPhoneWorking,
+          isTouchscreenWorking,
+          isDisplayOriginal,
+          hasValidWarranty,
+        },
+        backPanelCondition,
+        sidePanelCondition,
+        hardwareFaults,
+        hasOriginalBox,
+        hasOriginalCharger,
         display: displayCondition,
         body: bodyCondition,
         battery: batteryCondition,
         functional: functionalFaults,
-        accessories: { hasOriginalBox, hasOriginalCharger },
       },
       indicativeValuation: calculatedQuote,
     };
@@ -394,132 +465,268 @@ export const SellDevicePage: React.FC = () => {
 
           <div className="text-center max-w-md mx-auto space-y-1">
             <h2 className="text-2xl font-black text-slate-900">
-              Evaluate Device Condition
+              Device Health & Condition Check
             </h2>
             <p className="text-xs text-slate-500">
-              Accurate details ensure instant quote matching at your doorstep without deductions.
+              Answer 4 quick questions and confirm physical condition for an instant guaranteed valuation.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Screen Condition */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
+          <div className="space-y-6">
+            {/* 1. DOFY 4 BASIC HEALTH QUESTIONS */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-card space-y-4">
               <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-emerald-600" /> Screen & Touch Display
+                <Smartphone className="w-4 h-4 text-amber-500" /> Basic Working Condition
               </h3>
-              <div className="space-y-2">
-                {[
-                  { id: 'FLAWLESS', label: 'Flawless', desc: 'No visible scratches, 100% original' },
-                  { id: 'MINOR_SCRATCHES', label: 'Minor Scratches', desc: '1-2 light hairline scratches' },
-                  { id: 'DEEP_SCRATCHES', label: 'Deep Scratches', desc: 'Noticeable scratches, touch works' },
-                  { id: 'CRACKED_GLASS', label: 'Cracked Glass', desc: 'Cracked outer glass, display intact' },
-                  { id: 'BROKEN_OR_DEAD_PIXELS', label: 'Dead Pixels / Lines', desc: 'Discoloration or ink bleed' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setDisplayCondition(opt.id)}
-                    className={`w-full p-3 rounded-2xl border text-left text-xs transition flex items-center justify-between ${
-                      displayCondition === opt.id
-                        ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500 font-bold'
-                        : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70'
-                    }`}
-                  >
+
+              <div className="space-y-4">
+                {/* Q1: Phone working */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-slate-900 font-bold">{opt.label}</p>
-                      <p className="text-[11px] text-slate-500">{opt.desc}</p>
+                      <p className="text-xs font-bold text-slate-900">1. Is the phone in proper working condition?</p>
+                      <p className="text-[11px] text-slate-500">Check if the phone powers on and confirm that it is in working condition</p>
                     </div>
-                    {displayCondition === opt.id && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-                  </button>
-                ))}
-              </div>
-            </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setIsPhoneWorking(true)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${isPhoneWorking ? 'bg-amber-500 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✓ Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsPhoneWorking(false)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${!isPhoneWorking ? 'bg-rose-500 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✕ No
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Body Condition */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-emerald-600" /> Body / Frame & Back
-              </h3>
-              <div className="space-y-2">
-                {[
-                  { id: 'FLAWLESS', label: 'Flawless Body', desc: 'Like brand new, zero dents' },
-                  { id: 'MINOR_SIGNS_OF_USE', label: 'Minor Signs of Use', desc: 'Light scuffs along the corners' },
-                  { id: 'DENTED_OR_SCRATCHED', label: 'Dented or Heavy Scratches', desc: 'Visible edge dents or paint peel' },
-                  { id: 'BENT_OR_CRACKED_BACK', label: 'Bent Frame / Cracked Back', desc: 'Rear glass broken or curved body' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setBodyCondition(opt.id)}
-                    className={`w-full p-3 rounded-2xl border text-left text-xs transition flex items-center justify-between ${
-                      bodyCondition === opt.id
-                        ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500 font-bold'
-                        : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70'
-                    }`}
-                  >
+                {/* Q2: Touchscreen */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-slate-900 font-bold">{opt.label}</p>
-                      <p className="text-[11px] text-slate-500">{opt.desc}</p>
+                      <p className="text-xs font-bold text-slate-900">2. Is the touchscreen on your phone working properly?</p>
+                      <p className="text-[11px] text-slate-500">Check the touch screen functionality across the entire display</p>
                     </div>
-                    {bodyCondition === opt.id && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-                  </button>
-                ))}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setIsTouchscreenWorking(true)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${isTouchscreenWorking ? 'bg-amber-500 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✓ Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsTouchscreenWorking(false)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${!isTouchscreenWorking ? 'bg-rose-500 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✕ No
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Q3: Display Original */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">3. Is the phone's display original?</p>
+                      <p className="text-[11px] text-slate-500">Select "Yes" if never replaced or changed by Authorized Service Center</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setIsDisplayOriginal(true)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${isDisplayOriginal ? 'bg-amber-500 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✓ Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsDisplayOriginal(false)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${!isDisplayOriginal ? 'bg-rose-500 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✕ No
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Q4: Valid Warranty */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">4. Is there a valid warranty for your phone?</p>
+                      <p className="text-[11px] text-slate-500">You'll get a better price if your device has an active manufacturer warranty</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setHasValidWarranty(true)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${hasValidWarranty ? 'bg-amber-500 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✓ Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHasValidWarranty(false)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${!hasValidWarranty ? 'bg-slate-700 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        ✕ No
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Battery Health */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
+            {/* 2. PHYSICAL CONDITION (Back Panel & Side Panel) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Back Panel */}
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-purple-600" /> Back Panel Condition
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { id: 'NO_DEFECTS', label: 'No defects on back panel', desc: 'Flawless pristine rear surface' },
+                    { id: 'MINOR_SCRATCHES', label: 'Minor Scratches or less than 2 scratches', desc: 'Subtle hairline scratches only' },
+                    { id: 'HEAVY_SCRATCHES', label: 'Heavy Scratches', desc: 'Noticeable deep scratches' },
+                    { id: 'BACK_PANEL_BROKEN', label: 'Back Panel broken', desc: 'Rear glass cracked or shattered' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setBackPanelCondition(opt.id)}
+                      className={`w-full p-3 rounded-2xl border text-left text-xs transition flex items-center justify-between ${
+                        backPanelCondition === opt.id
+                          ? 'bg-purple-50 border-purple-500 ring-1 ring-purple-500 font-bold'
+                          : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70'
+                      }`}
+                    >
+                      <div>
+                        <p className="text-slate-900 font-bold">{opt.label}</p>
+                        <p className="text-[11px] text-slate-500">{opt.desc}</p>
+                      </div>
+                      {backPanelCondition === opt.id && <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Side / Center Frame */}
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-purple-600" /> Center or Side Panel Condition
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { id: 'NO_DEFECTS', label: 'No defects on center panel', desc: 'Like new, pristine metal/plastic edges' },
+                    { id: 'MINOR_DENT_OR_SCRATCHES', label: 'Minor dent or scratches', desc: 'Light edge scuffs or small notch' },
+                    { id: 'HEAVY_DENT', label: 'Heavy scratches / Heavy dent', desc: 'Deep dent or heavy paint peel' },
+                    { id: 'BENT_OR_BROKEN', label: 'Side Panel broken or bent', desc: 'Curved chassis or frame separated' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSidePanelCondition(opt.id)}
+                      className={`w-full p-3 rounded-2xl border text-left text-xs transition flex items-center justify-between ${
+                        sidePanelCondition === opt.id
+                          ? 'bg-purple-50 border-purple-500 ring-1 ring-purple-500 font-bold'
+                          : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70'
+                      }`}
+                    >
+                      <div>
+                        <p className="text-slate-900 font-bold">{opt.label}</p>
+                        <p className="text-[11px] text-slate-500">{opt.desc}</p>
+                      </div>
+                      {sidePanelCondition === opt.id && <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. HARDWARE & COMPONENT FAULTS */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-card space-y-3">
               <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <BatteryMedium className="w-4 h-4 text-emerald-600" /> Battery Health
+                <Cpu className="w-4 h-4 text-pink-600" /> Hardware & Sensor Faults
               </h3>
-              <div className="grid grid-cols-3 gap-2">
+              <p className="text-xs text-slate-500">Tap to select any component that is faulty or not functioning:</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 {[
-                  { id: 'EXCELLENT', label: 'Excellent', sub: '> 85% Health' },
-                  { id: 'GOOD', label: 'Good', sub: '75% - 85%' },
-                  { id: 'DEGRADED', label: 'Degraded', sub: '< 75% Service' },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setBatteryCondition(opt.id)}
-                    className={`p-3 rounded-2xl border text-center transition ${
-                      batteryCondition === opt.id
-                        ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500 font-bold text-emerald-950'
-                        : 'bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <p className="text-xs font-bold">{opt.label}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{opt.sub}</p>
-                  </button>
-                ))}
+                  { key: 'powerButtonNotWorking', label: 'Power Button' },
+                  { key: 'volumeButtonNotWorking', label: 'Volume Buttons' },
+                  { key: 'chargingPortNotWorking', label: 'Charging Port' },
+                  { key: 'earSpeakerNotWorking', label: 'Ear Speaker / Low' },
+                  { key: 'proximitySensorNotWorking', label: 'Proximity Sensor' },
+                  { key: 'wifiOrBluetoothNotWorking', label: 'WiFi / Bluetooth' },
+                  { key: 'vibratorNotWorking', label: 'Vibrator Motor' },
+                ].map((item) => {
+                  const isFaulty = hardwareFaults[item.key];
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() =>
+                        setHardwareFaults((prev) => ({
+                          ...prev,
+                          [item.key]: !prev[item.key],
+                        }))
+                      }
+                      className={`p-3 rounded-2xl border text-left transition flex items-center justify-between ${
+                        isFaulty
+                          ? 'bg-rose-50 border-rose-500 ring-1 ring-rose-500 font-bold text-rose-900'
+                          : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <span className={`text-xs ${isFaulty ? 'text-rose-600 font-black' : 'text-slate-300'}`}>
+                        {isFaulty ? '✕ Faulty' : '✓ OK'}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Original Accessories Bonus */}
+            {/* 4. ORIGINAL ACCESSORIES BONUS */}
             <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
               <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <Package className="w-4 h-4 text-emerald-600" /> Original Accessories (+Cash Bonus)
+                <Package className="w-4 h-4 text-amber-500" /> Original Accessories (+Cash Bonus)
               </h3>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <button
                   type="button"
-                  onClick={() => setHasOriginalBox(!hasOriginalBox)}
-                  className={`p-3 rounded-2xl border transition flex items-center justify-between ${
-                    hasOriginalBox ? 'bg-emerald-50 border-emerald-500 font-bold text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-600'
+                  onClick={() => setHasOriginalCharger(!hasOriginalCharger)}
+                  className={`p-3.5 rounded-2xl border transition flex items-center justify-between ${
+                    hasOriginalCharger ? 'bg-amber-50 border-amber-500 font-bold text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-600'
                   }`}
                 >
-                  <span>Original Box</span>
-                  {hasOriginalBox && <Check className="w-4 h-4 text-emerald-600" />}
+                  <div>
+                    <p className="font-bold">Original Charger of Device</p>
+                    <p className="text-[11px] text-slate-400">Available (+₹500 bonus)</p>
+                  </div>
+                  {hasOriginalCharger && <Check className="w-4 h-4 text-amber-600" />}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setHasOriginalCharger(!hasOriginalCharger)}
-                  className={`p-3 rounded-2xl border transition flex items-center justify-between ${
-                    hasOriginalCharger ? 'bg-emerald-50 border-emerald-500 font-bold text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-600'
+                  onClick={() => setHasOriginalBox(!hasOriginalBox)}
+                  className={`p-3.5 rounded-2xl border transition flex items-center justify-between ${
+                    hasOriginalBox ? 'bg-amber-50 border-amber-500 font-bold text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-600'
                   }`}
                 >
-                  <span>Original Charger</span>
-                  {hasOriginalCharger && <Check className="w-4 h-4 text-emerald-600" />}
+                  <div>
+                    <p className="font-bold">Original Device Box</p>
+                    <p className="text-[11px] text-slate-400">Available (+₹500 bonus)</p>
+                  </div>
+                  {hasOriginalBox && <Check className="w-4 h-4 text-amber-600" />}
                 </button>
               </div>
             </div>

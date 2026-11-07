@@ -137,7 +137,7 @@ export const DoorstepPickupPage: React.FC = () => {
       };
 
       const result = await requestApi.submitBuybackRequest(payload);
-      setSuccessBooking(result || { requestNumber: 'REV-' + Math.floor(100000 + Math.random() * 900000) });
+      setSuccessBooking(result || { requestNumber: 'GENIE-' + Math.floor(100000 + Math.random() * 900000) });
       sessionStorage.removeItem('revoo_pending_booking');
 
       confetti({
@@ -312,7 +312,7 @@ export const DoorstepPickupPage: React.FC = () => {
                 {bookingData.device?.modelName}
               </h3>
               <p className="text-[11px] text-slate-500 font-mono">
-                {bookingData.device?.variant} • {bookingData.device?.brand}
+                {bookingData.device?.variant} • {typeof bookingData.device?.brand === 'object' ? (bookingData.device?.brand?.name || 'Device') : (bookingData.device?.brand || 'Device')}
               </p>
             </div>
           </div>

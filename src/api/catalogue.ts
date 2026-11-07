@@ -26,13 +26,17 @@ export const catalogueApi = {
     return res.data?.data;
   },
 
-  calculateEstimate: async (payload: {
-    modelId: string;
-    variantCapacity: string;
-    conditions: any;
-  }): Promise<{ indicativeValuation: number; breakdown?: any }> => {
+  calculateEstimate: async (payload: any): Promise<{ indicativeValuation: number; valuation?: any; disclaimer?: string; breakdown?: any }> => {
     const res = await apiClient.post('/catalogue/estimate', payload);
-    return res.data?.data || { indicativeValuation: 0 };
+    const data = res.data?.data;
+    const valuation = data?.valuation;
+    const quote = valuation?.finalCalculatedAmount ?? data?.indicativeValuation ?? 0;
+    return {
+      indicativeValuation: quote,
+      valuation: valuation || data,
+      disclaimer: data?.disclaimer,
+      breakdown: valuation?.breakdown,
+    };
   },
 
   getRefurbishedProducts: async (category?: string): Promise<RefurbishedProduct[]> => {
