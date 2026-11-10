@@ -30,6 +30,37 @@ import {
 } from 'lucide-react';
 import { BackPanelIllustration, SidePanelIllustration } from '../../components/sell/DeviceConditionIllustrations';
 
+// Helper to normalize and add RAM to storage variants when missing
+export const normalizeCapacityWithRam = (cap: string, modelName: string): string => {
+  if (cap.includes('/')) return cap; // Already has RAM/ROM
+  const lower = modelName.toLowerCase();
+  const isLaptop =
+    lower.includes('macbook') ||
+    lower.includes('xps') ||
+    lower.includes('spectre') ||
+    lower.includes('thinkpad') ||
+    lower.includes('laptop') ||
+    lower.includes('zenbook') ||
+    lower.includes('omen') ||
+    lower.includes('envy');
+  const isTv =
+    lower.includes('tv') ||
+    lower.includes('bravia') ||
+    lower.includes('oled') ||
+    lower.includes('qled') ||
+    lower.includes('crystal');
+  if (isLaptop || isTv) return cap;
+
+  const clean = cap.replace(/\s+/g, '').toUpperCase();
+  if (clean === '64GB') return '4GB / 64GB';
+  if (clean === '128GB') return '8GB / 128GB';
+  if (clean === '256GB') return '8GB / 256GB';
+  if (clean === '512GB') return '12GB / 512GB';
+  if (clean === '1TB') return '16GB / 1TB';
+  if (clean === '2TB') return '16GB / 2TB';
+  return cap;
+};
+
 // Helper to resolve comprehensive storage capacities per device category
 export const getFallbackVariantsForDevice = (modelName: string): DeviceVariant[] => {
   const lower = modelName.toLowerCase();
@@ -61,30 +92,32 @@ export const getFallbackVariantsForDevice = (modelName: string): DeviceVariant[]
 
   if (isLaptop) {
     return [
-      { capacity: '256GB SSD • 8GB RAM', priceModifier: 0 },
-      { capacity: '512GB SSD • 16GB RAM', priceModifier: 8000 },
-      { capacity: '1TB SSD • 32GB RAM', priceModifier: 18000 },
-      { capacity: '2TB SSD • 64GB RAM', priceModifier: 28000 },
+      { capacity: '8GB RAM / 256GB SSD', priceModifier: 0 },
+      { capacity: '16GB RAM / 512GB SSD', priceModifier: 8000 },
+      { capacity: '32GB RAM / 1TB SSD', priceModifier: 18000 },
+      { capacity: '64GB RAM / 2TB SSD', priceModifier: 28000 },
     ];
   }
 
   if (isTablet) {
     return [
-      { capacity: '128 GB Wi-Fi', priceModifier: 0 },
-      { capacity: '256 GB Wi-Fi', priceModifier: 4000 },
-      { capacity: '512 GB (Wi-Fi + 5G)', priceModifier: 10000 },
-      { capacity: '1 TB (Wi-Fi + 5G)', priceModifier: 16000 },
-      { capacity: '2 TB (Wi-Fi + 5G)', priceModifier: 24000 },
+      { capacity: '6GB / 128GB Wi-Fi', priceModifier: 0 },
+      { capacity: '8GB / 256GB Wi-Fi', priceModifier: 4000 },
+      { capacity: '8GB / 512GB (Wi-Fi + 5G)', priceModifier: 10000 },
+      { capacity: '16GB / 1TB (Wi-Fi + 5G)', priceModifier: 16000 },
+      { capacity: '16GB / 2TB (Wi-Fi + 5G)', priceModifier: 24000 },
     ];
   }
 
-  // Smartphones / Mobiles: 128 GB, 256 GB, 512 GB, 1 TB, 2 TB
+  // Smartphones / Mobiles: 6GB/128GB, 8GB/128GB, 8GB/256GB, 12GB/256GB, 12GB/512GB, 16GB/512GB, 16GB/1TB
   return [
-    { capacity: '128 GB', priceModifier: 0 },
-    { capacity: '256 GB', priceModifier: 3500 },
-    { capacity: '512 GB', priceModifier: 7500 },
-    { capacity: '1 TB', priceModifier: 12000 },
-    { capacity: '2 TB', priceModifier: 18000 },
+    { capacity: '6GB / 128GB', priceModifier: 0 },
+    { capacity: '8GB / 128GB', priceModifier: 0 },
+    { capacity: '8GB / 256GB', priceModifier: 3500 },
+    { capacity: '12GB / 256GB', priceModifier: 5000 },
+    { capacity: '12GB / 512GB', priceModifier: 8000 },
+    { capacity: '16GB / 512GB', priceModifier: 11000 },
+    { capacity: '16GB / 1TB', priceModifier: 16000 },
   ];
 };
 
@@ -210,7 +243,7 @@ export const SellDevicePage: React.FC = () => {
       if (Array.isArray(apiVariants) && apiVariants.length > 0) {
         const dbVariants: DeviceVariant[] = apiVariants.map((v: any) => ({
           _id: v._id,
-          capacity: v.capacity,
+          capacity: normalizeCapacityWithRam(v.capacity, model.name),
           priceModifier: v.priceModifier || 0,
         }));
 
@@ -593,26 +626,22 @@ export const SellDevicePage: React.FC = () => {
 
           <div className="text-center space-y-1">
             <h2 className="text-xl font-black text-slate-900">
-              Select Storage Variant
+              Select Device Variant
             </h2>
             <p className="text-xs text-slate-500">
-              Higher storage capacities fetch a higher guaranteed cash payout
+              Choose your device's exact RAM and internal storage configuration
             </p>
           </div>
 
           {isLoadingVariants ? (
             <div className="py-12 text-center flex flex-col items-center gap-3 text-slate-400">
               <Loader2 className="w-7 h-7 text-rose-600 animate-spin" />
-              <span className="text-xs font-medium">Loading storage variants...</span>
+              <span className="text-xs font-medium">Loading variants...</span>
             </div>
           ) : (
             <div className="space-y-3">
               {availableVariants.map((v) => {
                 const isSelected = selectedVariant?.capacity === v.capacity;
-                const bonusText =
-                  v.priceModifier > 0
-                    ? `+₹${v.priceModifier.toLocaleString('en-IN')} Cash Bonus`
-                    : 'Standard Baseline';
 
                 return (
                   <button
@@ -638,12 +667,8 @@ export const SellDevicePage: React.FC = () => {
                         <h4 className="font-extrabold text-base text-slate-900 group-hover:text-rose-600 transition">
                           {v.capacity}
                         </h4>
-                        <span
-                          className={`text-xs font-semibold ${
-                            v.priceModifier > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'
-                          }`}
-                        >
-                          {bonusText}
+                        <span className="text-xs font-semibold text-slate-400">
+                          RAM & Storage Configuration
                         </span>
                       </div>
                     </div>

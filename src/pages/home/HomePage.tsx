@@ -345,46 +345,66 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {reviews.slice(0, 3).map((r, idx) => (
-              <div
-                key={r._id || `review-${r.customerName || 'customer'}-${idx}`}
-                className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-card space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-3.5 h-3.5 ${
-                            i < (r.rating || 5)
-                              ? 'text-amber-500 fill-amber-500'
-                              : 'text-slate-200'
-                          }`}
-                        />
-                      ))}
+            {reviews.slice(0, 3).map((r, idx) => {
+              const customerName = r.customerName || (r as any).name || 'Verified Customer';
+              const comment = r.comment || (r as any).quote || 'Fast, reliable doorstep buyback experience!';
+              const deviceModel = r.deviceModel || (r as any).device || 'Smartphone';
+              const city = r.city || 'Tamil Nadu';
+              const amount = (r as any).amount;
+
+              return (
+                <div
+                  key={r._id || `review-${customerName}-${idx}`}
+                  className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-card space-y-3 flex flex-col justify-between hover:shadow-card-hover transition-all"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3.5 h-3.5 ${
+                              i < (r.rating || 5)
+                                ? 'text-amber-500 fill-amber-500'
+                                : 'text-slate-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-extrabold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                        Verified Seller
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                      Verified Seller
-                    </span>
+
+                    <p className="text-xs text-slate-700 leading-relaxed italic">
+                      "{comment}"
+                    </p>
                   </div>
 
-                  <p className="text-xs text-slate-700 leading-relaxed italic">
-                    "{r.comment}"
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <div>
-                    <p className="font-bold text-slate-900">{r.customerName}</p>
-                    <p className="text-[10px] text-slate-400">📍 {r.city || 'Tamil Nadu'}</p>
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-rose-600 to-violet-600 text-white font-black text-xs flex items-center justify-center shadow-2xs">
+                        {customerName[0]?.toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-900 leading-tight">{customerName}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">📍 {city}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[11px] font-bold text-slate-700 block">
+                        {deviceModel}
+                      </span>
+                      {amount && (
+                        <span className="text-[10px] font-extrabold text-rose-600">
+                          ₹{amount.toLocaleString('en-IN')} paid
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-[11px] font-semibold text-slate-500">
-                    {r.deviceModel}
-                  </span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

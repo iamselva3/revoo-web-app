@@ -49,7 +49,19 @@ export const catalogueApi = {
   getReviews: async (type: 'sell' | 'buy' = 'sell'): Promise<CustomerReview[]> => {
     try {
       const res = await apiClient.get('/catalogue/reviews', { params: { type } });
-      return res.data?.data || [];
+      const raw = res.data?.data || [];
+      return raw.map((r: any) => ({
+        ...r,
+        _id: r._id || r.id,
+        customerName: r.customerName || r.name || 'Verified Customer',
+        comment: r.comment || r.quote || '',
+        deviceModel: r.deviceModel || r.device || 'Smart Device',
+        rating: r.rating || 5,
+        city: r.city || 'Tamil Nadu',
+        amount: r.amount,
+        date: r.date,
+        verified: r.verified !== false,
+      }));
     } catch {
       return [];
     }
