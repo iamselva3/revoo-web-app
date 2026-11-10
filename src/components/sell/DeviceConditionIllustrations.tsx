@@ -130,3 +130,4 @@ export const SidePanelIllustration: React.FC<SidePanelIllustrationProps> = ({ co
     </div>
   );
 };
+

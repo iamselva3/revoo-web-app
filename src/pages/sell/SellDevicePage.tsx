@@ -54,10 +54,10 @@ export const SellDevicePage: React.FC = () => {
   // Condition assessment state (null = unanswered initial state for sequential reveal)
   const [isPhoneWorking, setIsPhoneWorking] = useState<boolean | null>(null);
   const [isTouchscreenWorking, setIsTouchscreenWorking] = useState<boolean | null>(null);
-  const [isDisplayOriginal, setIsDisplayOriginal] = useState<boolean>(true);
-  const [hasValidWarranty, setHasValidWarranty] = useState<boolean>(false);
-  const [backPanelCondition, setBackPanelCondition] = useState<string>('NO_DEFECTS');
-  const [sidePanelCondition, setSidePanelCondition] = useState<string>('NO_DEFECTS');
+  const [isDisplayOriginal, setIsDisplayOriginal] = useState<boolean | null>(null);
+  const [hasValidWarranty, setHasValidWarranty] = useState<boolean | null>(null);
+  const [backPanelCondition, setBackPanelCondition] = useState<string | null>(null);
+  const [sidePanelCondition, setSidePanelCondition] = useState<string | null>(null);
   const [hardwareFaults, setHardwareFaults] = useState<Record<string, boolean>>({
     powerButtonNotWorking: false,
     volumeButtonNotWorking: false,
@@ -74,8 +74,8 @@ export const SellDevicePage: React.FC = () => {
     microphoneNotWorking: false,
     biometricsNotWorking: false,
   });
-  const [hasOriginalBox, setHasOriginalBox] = useState<boolean>(true);
-  const [hasOriginalCharger, setHasOriginalCharger] = useState<boolean>(true);
+  const [hasOriginalBox, setHasOriginalBox] = useState<boolean>(false);
+  const [hasOriginalCharger, setHasOriginalCharger] = useState<boolean>(false);
   const [hasValidBill, setHasValidBill] = useState<boolean>(false);
 
   // Legacy fallback compatibility
@@ -136,8 +136,10 @@ export const SellDevicePage: React.FC = () => {
     setEvalSubStep(1);
     setIsPhoneWorking(null);
     setIsTouchscreenWorking(null);
-    setIsDisplayOriginal(true);
-    setHasValidWarranty(false);
+    setIsDisplayOriginal(null);
+    setHasValidWarranty(null);
+    setBackPanelCondition(null);
+    setSidePanelCondition(null);
     if (model.variants && model.variants.length > 0) {
       setSelectedVariant(model.variants[0]);
       setStep(3);
@@ -153,8 +155,10 @@ export const SellDevicePage: React.FC = () => {
     setEvalSubStep(1);
     setIsPhoneWorking(null);
     setIsTouchscreenWorking(null);
-    setIsDisplayOriginal(true);
-    setHasValidWarranty(false);
+    setIsDisplayOriginal(null);
+    setHasValidWarranty(null);
+    setBackPanelCondition(null);
+    setSidePanelCondition(null);
     setStep(4);
   };
 
@@ -165,8 +169,10 @@ export const SellDevicePage: React.FC = () => {
 
     const isWorking = isPhoneWorking !== false;
     const isTouchWorking = isWorking ? (isTouchscreenWorking !== false) : false;
-    const isDisplayOrig = isWorking && isTouchWorking ? isDisplayOriginal : false;
-    const isBillValid = isWorking && isTouchWorking ? (hasValidBill || hasValidWarranty) : false;
+    const isDisplayOrig = isWorking && isTouchWorking ? Boolean(isDisplayOriginal) : false;
+    const isBillValid = isWorking && isTouchWorking ? (hasValidBill || Boolean(hasValidWarranty)) : false;
+    const backPanel = backPanelCondition || 'NO_DEFECTS';
+    const sidePanel = sidePanelCondition || 'NO_DEFECTS';
 
     const conditionsPayload = {
       basicQuestions: {
@@ -175,8 +181,8 @@ export const SellDevicePage: React.FC = () => {
         isDisplayOriginal: isDisplayOrig,
         hasValidWarranty: isBillValid,
       },
-      backPanelCondition,
-      sidePanelCondition,
+      backPanelCondition: backPanel,
+      sidePanelCondition: sidePanel,
       hardwareFaults,
       hasOriginalBox,
       hasOriginalCharger,
@@ -782,8 +788,9 @@ export const SellDevicePage: React.FC = () => {
                 ) : isPhoneWorking === true && isTouchscreenWorking === true ? (
                   <button
                     type="button"
+                    disabled={isDisplayOriginal === null || hasValidWarranty === null}
                     onClick={() => setEvalSubStep(2)}
-                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2"
                   >
                     <span>Next: Body & Frame Condition</span>
                     <ArrowRight className="w-4 h-4" />
@@ -909,8 +916,9 @@ export const SellDevicePage: React.FC = () => {
                 </button>
                 <button
                   type="button"
+                  disabled={!backPanelCondition || !sidePanelCondition}
                   onClick={() => setEvalSubStep(3)}
-                  className="py-3 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-2"
+                  className="py-3 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition flex items-center gap-2"
                 >
                   <span>Next: Hardware & Sensors</span>
                   <ArrowRight className="w-4 h-4" />
