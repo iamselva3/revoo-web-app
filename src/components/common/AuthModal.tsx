@@ -55,6 +55,25 @@ export const AuthModal: React.FC = () => {
     }
   }, [isAuthModalOpen]);
 
+  // Prevent background page from scrolling while modal is open
+  React.useEffect(() => {
+    if (isAuthModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+      document.body.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.paddingRight = originalPaddingRight;
+      };
+    }
+  }, [isAuthModalOpen]);
+
   if (!isAuthModalOpen) return null;
 
   const handleGoogleSignIn = () => {
@@ -234,31 +253,42 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-slide-up">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto overscroll-contain animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          closeAuthModal();
+        }
+      }}
+    >
+      <div
+        className="relative w-full max-w-md my-auto bg-white rounded-3xl shadow-2xl border border-slate-100 animate-slide-up flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close Button */}
         <button
           onClick={closeAuthModal}
           className="absolute top-4 right-4 z-10 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition"
+          aria-label="Close modal"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Modal Header */}
-        <div className="p-6 bg-gradient-to-br from-rose-50 via-pink-50 to-violet-50 border-b border-rose-100/60 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white flex items-center justify-center mx-auto mb-3 shadow-brand-sm">
-            <ShieldCheck className="w-6 h-6" />
+        {/* Modal Header (Fixed at top of modal) */}
+        <div className="p-5 sm:p-6 bg-gradient-to-br from-rose-50 via-pink-50 to-violet-50 border-b border-rose-100/60 text-center shrink-0">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white flex items-center justify-center mx-auto mb-2.5 sm:mb-3 shadow-brand-sm">
+            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
             Welcome to Genie
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5 sm:mt-1">
             Doorstep smartphone buyback & certified circular tech
           </p>
         </div>
 
-        {/* Form Body */}
-        <div className="p-6">
+        {/* Form Body (Scrolls smoothly without scrolling the background page) */}
+        <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1">
           {errorMsg && (
             <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
               {errorMsg}

@@ -27,6 +27,17 @@ export const PromotionalPopup: React.FC = () => {
     });
   }, []);
 
+  // Lock body scroll when popup is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen || !popup) return null;
 
   const handleAction = () => {
@@ -43,8 +54,18 @@ export const PromotionalPopup: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-rose-100 animate-slide-up">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto overscroll-contain animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setIsOpen(false);
+        }
+      }}
+    >
+      <div
+        className="relative w-full max-w-md my-auto bg-white rounded-3xl shadow-2xl border border-rose-100 animate-slide-up flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close Button */}
         <button
           onClick={() => setIsOpen(false)}
@@ -82,7 +103,7 @@ export const PromotionalPopup: React.FC = () => {
         )}
 
         {/* Content */}
-        <div className="p-6 text-center space-y-3">
+        <div className="p-6 text-center space-y-3 overflow-y-auto overscroll-contain flex-1">
           <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
             {popup.title}
           </h3>
