@@ -11,9 +11,9 @@ export const Layout: React.FC = () => {
   const { isPageLoading } = usePageLoading();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black text-slate-900 dark:text-neutral-100 font-sans transition-colors duration-200">
       <Navbar />
-      <main className="flex-1 flex flex-col min-h-[calc(100vh-80px)]">
+      <main className="flex-1 flex flex-col min-h-[calc(100vh-80px)] bg-slate-50 dark:bg-black">
         <Outlet />
       </main>
       {/* Hide footer completely while body is loading data from the backend */}

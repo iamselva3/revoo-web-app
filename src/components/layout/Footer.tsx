@@ -68,11 +68,13 @@ export const Footer: React.FC = () => {
         {/* Links & Brand Info */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 py-12">
           <div className="md:col-span-1 space-y-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 select-none">
               <img
                 src="/genie_logo_light.png"
                 alt="Genie"
-                className="h-9 w-auto object-contain"
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                className="h-9 w-auto object-contain select-none pointer-events-none"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/genie_logo_transparent.png';
                 }}

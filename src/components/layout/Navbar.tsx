@@ -11,6 +11,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
+import { ThemeToggle } from '../common/ThemeToggle';
 
 export const Navbar: React.FC = () => {
   const { user, logout, openAuthModal } = useAuth();
@@ -21,16 +22,18 @@ export const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-slate-200/80 dark:border-neutral-900 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo & City Chip */}
           <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 group">
+            <Link to="/" className="flex items-center gap-2 group cursor-pointer select-none">
               <img
                 src="/genie_logo_light.png"
                 alt="Genie"
-                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 animate-genie-logo"
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 animate-genie-logo select-none pointer-events-none"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/genie_logo_transparent.png';
                 }}
@@ -71,8 +74,10 @@ export const Navbar: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Actions: Profile / Login */}
+          {/* Actions: Theme Toggle / Profile / Login */}
           <div className="flex items-center gap-2.5">
+            <ThemeToggle />
+
             {/* Auth Button or User Menu */}
             {user ? (
               <div className="relative">
@@ -184,6 +189,11 @@ export const Navbar: React.FC = () => {
             <Truck className="w-5 h-5 text-slate-700" />
             <span>Track Pickup Request</span>
           </Link>
+
+          <div className="pt-2 border-t border-slate-200 dark:border-neutral-800 flex items-center justify-between px-1">
+            <span className="text-xs font-bold text-slate-600 dark:text-neutral-300">Display Theme</span>
+            <ThemeToggle showLabel />
+          </div>
         </div>
       )}
     </header>
