@@ -8,6 +8,7 @@ export interface Brand {
 }
 
 export interface DeviceVariant {
+  _id?: string;
   capacity: string;
   priceModifier: number;
 }

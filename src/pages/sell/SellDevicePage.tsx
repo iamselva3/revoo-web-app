@@ -33,6 +33,64 @@ import {
 } from 'lucide-react';
 import { BackPanelIllustration, SidePanelIllustration } from '../../components/sell/DeviceConditionIllustrations';
 
+// Helper to resolve comprehensive storage capacities per device category
+export const getFallbackVariantsForDevice = (modelName: string): DeviceVariant[] => {
+  const lower = modelName.toLowerCase();
+  const isLaptop =
+    lower.includes('macbook') ||
+    lower.includes('xps') ||
+    lower.includes('spectre') ||
+    lower.includes('thinkpad') ||
+    lower.includes('laptop') ||
+    lower.includes('zenbook') ||
+    lower.includes('omen') ||
+    lower.includes('envy');
+  const isTv =
+    lower.includes('tv') ||
+    lower.includes('bravia') ||
+    lower.includes('oled') ||
+    lower.includes('qled') ||
+    lower.includes('crystal');
+  const isTablet = lower.includes('ipad') || lower.includes('tab') || lower.includes('pad');
+
+  if (isTv) {
+    return [
+      { capacity: '43" 4K UHD / Google TV', priceModifier: 0 },
+      { capacity: '55" 4K QLED / OLED 120Hz', priceModifier: 12000 },
+      { capacity: '65" 4K Cinema Mini-LED / OLED', priceModifier: 26000 },
+      { capacity: '75" 4K Master Series', priceModifier: 42000 },
+    ];
+  }
+
+  if (isLaptop) {
+    return [
+      { capacity: '256GB SSD • 8GB RAM', priceModifier: 0 },
+      { capacity: '512GB SSD • 16GB RAM', priceModifier: 8000 },
+      { capacity: '1TB SSD • 32GB RAM', priceModifier: 18000 },
+      { capacity: '2TB SSD • 64GB RAM', priceModifier: 28000 },
+    ];
+  }
+
+  if (isTablet) {
+    return [
+      { capacity: '128 GB Wi-Fi', priceModifier: 0 },
+      { capacity: '256 GB Wi-Fi', priceModifier: 4000 },
+      { capacity: '512 GB (Wi-Fi + 5G)', priceModifier: 10000 },
+      { capacity: '1 TB (Wi-Fi + 5G)', priceModifier: 16000 },
+      { capacity: '2 TB (Wi-Fi + 5G)', priceModifier: 24000 },
+    ];
+  }
+
+  // Smartphones / Mobiles: 128 GB, 256 GB, 512 GB, 1 TB, 2 TB
+  return [
+    { capacity: '128 GB', priceModifier: 0 },
+    { capacity: '256 GB', priceModifier: 3500 },
+    { capacity: '512 GB', priceModifier: 7500 },
+    { capacity: '1 TB', priceModifier: 12000 },
+    { capacity: '2 TB', priceModifier: 18000 },
+  ];
+};
+
 export const SellDevicePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -50,6 +108,8 @@ export const SellDevicePage: React.FC = () => {
   const [searchModelQuery, setSearchModelQuery] = useState('');
 
   const [selectedVariant, setSelectedVariant] = useState<DeviceVariant | null>(null);
+  const [availableVariants, setAvailableVariants] = useState<DeviceVariant[]>([]);
+  const [isLoadingVariants, setIsLoadingVariants] = useState<boolean>(false);
 
   // Condition assessment state (null = unanswered initial state for sequential reveal)
   const [isPhoneWorking, setIsPhoneWorking] = useState<boolean | null>(null);
@@ -131,7 +191,7 @@ export const SellDevicePage: React.FC = () => {
   };
 
   // Handle Model Pick
-  const handleSelectModel = (model: SmartphoneModel) => {
+  const handleSelectModel = async (model: SmartphoneModel) => {
     setSelectedModel(model);
     setEvalSubStep(1);
     setIsPhoneWorking(null);
@@ -140,12 +200,42 @@ export const SellDevicePage: React.FC = () => {
     setHasValidWarranty(null);
     setBackPanelCondition(null);
     setSidePanelCondition(null);
-    if (model.variants && model.variants.length > 0) {
-      setSelectedVariant(model.variants[0]);
-      setStep(3);
-    } else {
-      setSelectedVariant({ capacity: 'Standard', priceModifier: 0 });
-      setStep(4);
+    setSelectedVariant(null);
+    setIsLoadingVariants(true);
+    setStep(3); // Always show Step 3 (Variant / Storage selection)
+
+    try {
+      const details = await catalogueApi.getModelDetails(model._id);
+      const apiVariants = details?.variants || (details as any)?.data?.variants;
+      const fallback = getFallbackVariantsForDevice(model.name);
+
+      if (Array.isArray(apiVariants) && apiVariants.length > 0) {
+        const dbVariants: DeviceVariant[] = apiVariants.map((v: any) => ({
+          _id: v._id,
+          capacity: v.capacity,
+          priceModifier: v.priceModifier || 0,
+        }));
+
+        // Merge DB variants and add any missing standard higher capacities (e.g. 512GB, 1TB, 2TB)
+        const existingCapacities = new Set(
+          dbVariants.map((v) => v.capacity.replace(/\s+/g, '').toLowerCase())
+        );
+
+        const merged = [...dbVariants];
+        for (const fb of fallback) {
+          const norm = fb.capacity.replace(/\s+/g, '').toLowerCase();
+          if (!existingCapacities.has(norm)) {
+            merged.push(fb);
+          }
+        }
+        setAvailableVariants(merged);
+      } else {
+        setAvailableVariants(fallback);
+      }
+    } catch {
+      setAvailableVariants(getFallbackVariantsForDevice(model.name));
+    } finally {
+      setIsLoadingVariants(false);
     }
   };
 
@@ -462,7 +552,7 @@ export const SellDevicePage: React.FC = () => {
 
       {/* STEP 3: Select Variant / Storage */}
       {step === 3 && selectedModel && (
-        <div className="space-y-6 animate-fade-in max-w-lg mx-auto">
+        <div className="space-y-6 animate-fade-in max-w-xl mx-auto">
           <button
             onClick={() => setStep(2)}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition"
@@ -471,39 +561,103 @@ export const SellDevicePage: React.FC = () => {
             <span>Back to Models</span>
           </button>
 
+          {/* Model Summary Header Card */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2 shrink-0">
+              <img
+                src={resolveImageUrl(selectedModel.imageUrl, selectedModel.slug)}
+                alt={selectedModel.name}
+                className="max-h-full max-w-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/uploads/devices/pixel-7a.png';
+                }}
+              />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                {selectedBrand?.name || 'Device'}
+              </span>
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-tight mt-1">
+                {selectedModel.name}
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Year {selectedModel.releaseYear} • Select your exact storage capacity
+              </p>
+            </div>
+          </div>
+
           <div className="text-center space-y-1">
             <h2 className="text-xl font-black text-slate-900">
-              Select Storage Variant for {selectedModel.name}
+              Select Storage Variant
             </h2>
             <p className="text-xs text-slate-500">
-              Higher storage capacities fetch a bonus payout
+              Higher storage capacities fetch a higher guaranteed cash payout
             </p>
           </div>
 
-          <div className="space-y-3">
-            {selectedModel.variants?.map((v) => (
-              <button
-                key={v.capacity}
-                onClick={() => handleSelectVariant(v)}
-                className="w-full p-4 rounded-2xl bg-white border border-slate-200 shadow-card hover:shadow-card-hover hover:border-emerald-500 flex items-center justify-between text-left transition group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-black text-xs">
-                    <Cpu className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition">
-                      {v.capacity}
-                    </h4>
-                    <span className="text-[11px] text-slate-400">
-                      Standard Storage Variant
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition" />
-              </button>
-            ))}
-          </div>
+          {isLoadingVariants ? (
+            <div className="py-12 text-center flex flex-col items-center gap-3 text-slate-400">
+              <Loader2 className="w-7 h-7 text-emerald-600 animate-spin" />
+              <span className="text-xs font-medium">Loading storage variants...</span>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {availableVariants.map((v) => {
+                const isSelected = selectedVariant?.capacity === v.capacity;
+                const bonusText =
+                  v.priceModifier > 0
+                    ? `+₹${v.priceModifier.toLocaleString('en-IN')} Cash Bonus`
+                    : 'Standard Baseline';
+
+                return (
+                  <button
+                    key={v.capacity}
+                    onClick={() => handleSelectVariant(v)}
+                    className={`w-full p-4 rounded-2xl border transition flex items-center justify-between text-left group ${
+                      isSelected
+                        ? 'bg-emerald-50/80 border-2 border-emerald-600 shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-emerald-500 hover:shadow-card shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-xs transition ${
+                          isSelected
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-slate-100 text-slate-700 group-hover:bg-emerald-50 group-hover:text-emerald-700'
+                        }`}
+                      >
+                        <Cpu className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-base text-slate-900 group-hover:text-emerald-700 transition">
+                          {v.capacity}
+                        </h4>
+                        <span
+                          className={`text-xs font-semibold ${
+                            v.priceModifier > 0 ? 'text-emerald-700 font-bold' : 'text-slate-400'
+                          }`}
+                        >
+                          {bonusText}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-6 h-6 rounded-full border flex items-center justify-center transition ${
+                          isSelected
+                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+                            : 'border-slate-300 text-transparent group-hover:border-emerald-400'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -515,7 +669,7 @@ export const SellDevicePage: React.FC = () => {
             <button
               onClick={() => {
                 if (evalSubStep === 1) {
-                  setStep(selectedModel.variants && selectedModel.variants.length > 0 ? 3 : 2);
+                  setStep(3);
                 } else if (evalSubStep === 2) {
                   setEvalSubStep(1);
                 } else if (evalSubStep === 3) {
