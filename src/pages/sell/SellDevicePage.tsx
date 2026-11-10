@@ -20,7 +20,18 @@ import {
   Tag,
   Loader2,
   Search,
+  Wifi,
+  Mic,
+  Volume2,
+  Power,
+  Battery,
+  Fingerprint,
+  Camera,
+  Radio,
+  Zap,
+  Activity,
 } from 'lucide-react';
+import { BackPanelIllustration, SidePanelIllustration } from '../../components/sell/DeviceConditionIllustrations';
 
 export const SellDevicePage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -795,67 +806,95 @@ export const SellDevicePage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Back Panel */}
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
+                {/* 1. Back Panel Condition */}
+                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-4">
                   <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-purple-600" /> Back Panel Condition
+                    <ShieldAlert className="w-4 h-4 text-rose-600" /> Back Panel Condition
                   </h3>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-3">
                     {[
                       { id: 'NO_DEFECTS', label: 'No defects on back panel', desc: 'Flawless pristine rear surface' },
                       { id: 'MINOR_SCRATCHES', label: 'Minor Scratches (less than 2)', desc: 'Subtle hairline scratches only' },
                       { id: 'HEAVY_SCRATCHES', label: 'Heavy Scratches', desc: 'Noticeable deep scratches' },
                       { id: 'BACK_PANEL_BROKEN', label: 'Back Panel broken', desc: 'Rear glass cracked or shattered' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setBackPanelCondition(opt.id)}
-                        className={`w-full p-3 rounded-2xl border text-left text-xs transition flex items-center justify-between ${
-                          backPanelCondition === opt.id
-                            ? 'bg-purple-50 border-purple-500 ring-1 ring-purple-500 font-bold'
-                            : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70'
-                        }`}
-                      >
-                        <div>
-                          <p className="text-slate-900 font-bold">{opt.label}</p>
-                          <p className="text-[11px] text-slate-500">{opt.desc}</p>
-                        </div>
-                        {backPanelCondition === opt.id && <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />}
-                      </button>
-                    ))}
+                    ].map((opt) => {
+                      const isSelected = backPanelCondition === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setBackPanelCondition(opt.id)}
+                          className={`p-3 sm:p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between relative group ${
+                            isSelected
+                              ? 'bg-rose-50/80 border-2 border-rose-600 shadow-xs'
+                              : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+                          }`}
+                        >
+                          <div className="h-24 flex items-center justify-center pt-1">
+                            <BackPanelIllustration condition={opt.id} />
+                          </div>
+                          <div className="w-full mt-2">
+                            <p className={`text-xs font-extrabold leading-tight ${isSelected ? 'text-rose-700' : 'text-slate-900'}`}>
+                              {opt.label}
+                            </p>
+                            <p className="text-[10px] text-slate-500 mt-1 leading-snug">
+                              {opt.desc}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xs">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Side / Center Frame */}
-                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-3">
+                {/* 2. Side / Center Frame */}
+                <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-card space-y-4">
                   <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-purple-600" /> Center or Side Panel Condition
+                    <ShieldAlert className="w-4 h-4 text-rose-600" /> Center or Side Panel Condition
                   </h3>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-3">
                     {[
                       { id: 'NO_DEFECTS', label: 'No defects on center panel', desc: 'Like new, pristine metal/plastic edges' },
                       { id: 'MINOR_DENT_OR_SCRATCHES', label: 'Minor dent or scratches', desc: 'Light edge scuffs or small notch' },
                       { id: 'HEAVY_DENT', label: 'Heavy scratches / Heavy dent', desc: 'Deep dent or heavy paint peel' },
                       { id: 'BENT_OR_BROKEN', label: 'Side Panel broken or bent', desc: 'Curved chassis or frame separated' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setSidePanelCondition(opt.id)}
-                        className={`w-full p-3 rounded-2xl border text-left text-xs transition flex items-center justify-between ${
-                          sidePanelCondition === opt.id
-                            ? 'bg-purple-50 border-purple-500 ring-1 ring-purple-500 font-bold'
-                            : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/70'
-                        }`}
-                      >
-                        <div>
-                          <p className="text-slate-900 font-bold">{opt.label}</p>
-                          <p className="text-[11px] text-slate-500">{opt.desc}</p>
-                        </div>
-                        {sidePanelCondition === opt.id && <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />}
-                      </button>
-                    ))}
+                    ].map((opt) => {
+                      const isSelected = sidePanelCondition === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setSidePanelCondition(opt.id)}
+                          className={`p-3 sm:p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between relative group ${
+                            isSelected
+                              ? 'bg-rose-50/80 border-2 border-rose-600 shadow-xs'
+                              : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+                          }`}
+                        >
+                          <div className="h-24 flex items-center justify-center pt-1">
+                            <SidePanelIllustration condition={opt.id} />
+                          </div>
+                          <div className="w-full mt-2">
+                            <p className={`text-xs font-extrabold leading-tight ${isSelected ? 'text-rose-700' : 'text-slate-900'}`}>
+                              {opt.label}
+                            </p>
+                            <p className="text-[10px] text-slate-500 mt-1 leading-snug">
+                              {opt.desc}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xs">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -895,22 +934,23 @@ export const SellDevicePage: React.FC = () => {
               <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-card space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
                   {[
-                    { key: 'powerButtonNotWorking', label: 'Power Button' },
-                    { key: 'volumeButtonNotWorking', label: 'Volume Buttons' },
-                    { key: 'chargingPortNotWorking', label: 'Charging Port' },
-                    { key: 'earSpeakerNotWorking', label: 'Ear Speaker / Low' },
-                    { key: 'proximitySensorNotWorking', label: 'Proximity Sensor' },
-                    { key: 'wifiOrBluetoothNotWorking', label: 'WiFi / Bluetooth' },
-                    { key: 'vibratorNotWorking', label: 'Vibrator Motor' },
-                    { key: 'batteryHealthBelow83', label: 'Battery Health ≤ 83%' },
-                    { key: 'frontCameraNotWorking', label: 'Front Camera' },
-                    { key: 'backCameraNotWorking', label: 'Rear Camera' },
-                    { key: 'cameraGlassBroken', label: 'Camera Glass Broken' },
-                    { key: 'networkProblem', label: 'Network / SIM Issue' },
-                    { key: 'microphoneNotWorking', label: 'Microphone Faulty' },
-                    { key: 'biometricsNotWorking', label: 'Face ID / Fingerprint' },
+                    { key: 'powerButtonNotWorking', label: 'Power Button', icon: Power },
+                    { key: 'volumeButtonNotWorking', label: 'Volume Buttons', icon: Volume2 },
+                    { key: 'chargingPortNotWorking', label: 'Charging Port', icon: Zap },
+                    { key: 'earSpeakerNotWorking', label: 'Ear Speaker / Low', icon: Volume2 },
+                    { key: 'proximitySensorNotWorking', label: 'Proximity Sensor', icon: Radio },
+                    { key: 'wifiOrBluetoothNotWorking', label: 'WiFi / Bluetooth', icon: Wifi },
+                    { key: 'vibratorNotWorking', label: 'Vibrator Motor', icon: Activity },
+                    { key: 'batteryHealthBelow83', label: 'Battery Health ≤ 83%', icon: Battery },
+                    { key: 'frontCameraNotWorking', label: 'Front Camera', icon: Camera },
+                    { key: 'backCameraNotWorking', label: 'Rear Camera', icon: Camera },
+                    { key: 'cameraGlassBroken', label: 'Camera Glass Broken', icon: ShieldAlert },
+                    { key: 'networkProblem', label: 'Network / SIM Issue', icon: Radio },
+                    { key: 'microphoneNotWorking', label: 'Microphone Faulty', icon: Mic },
+                    { key: 'biometricsNotWorking', label: 'Face ID / Fingerprint', icon: Fingerprint },
                   ].map((item) => {
                     const isFaulty = hardwareFaults[item.key];
+                    const IconComponent = item.icon;
                     return (
                       <button
                         key={item.key}
@@ -921,13 +961,16 @@ export const SellDevicePage: React.FC = () => {
                             [item.key]: !prev[item.key],
                           }))
                         }
-                        className={`p-3 rounded-2xl border text-left transition flex items-center justify-between ${
+                        className={`p-3 rounded-2xl border text-left transition flex items-center justify-between gap-2 ${
                           isFaulty
-                            ? 'bg-rose-50 border-rose-500 ring-1 ring-rose-500 font-bold text-rose-900'
-                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
+                            ? 'bg-rose-50/80 border-2 border-rose-600 font-bold text-rose-900 shadow-2xs'
+                            : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 text-slate-700'
                         }`}
                       >
-                        <span className="truncate">{item.label}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <IconComponent className={`w-4 h-4 shrink-0 ${isFaulty ? 'text-rose-600' : 'text-slate-400'}`} />
+                          <span className="truncate text-xs font-semibold">{item.label}</span>
+                        </div>
                         <span className={`text-[11px] font-black shrink-0 ${isFaulty ? 'text-rose-600' : 'text-slate-300'}`}>
                           {isFaulty ? '✕ Fault' : '✓ OK'}
                         </span>
