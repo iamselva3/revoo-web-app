@@ -1,24 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useCart } from '../../context/CartContext';
 import {
   Smartphone,
-  ShoppingBag,
   Truck,
   MapPin,
   User,
   LogOut,
   ChevronDown,
-  Sparkles,
   Menu,
   X,
-  ShieldCheck,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout, openAuthModal } = useAuth();
-  const { totalCount } = useCart();
   const location = useLocation();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -43,8 +38,8 @@ export const Navbar: React.FC = () => {
             </Link>
 
             {/* Service Location Pill (Desktop & Tablet) */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200/60 shadow-2xs">
-              <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50/80 text-rose-800 text-xs font-bold border border-rose-200/60 shadow-2xs">
+              <MapPin className="w-3.5 h-3.5 text-rose-600 shrink-0" />
               <span>Doorstep Pickup Across Tamil Nadu</span>
             </div>
           </div>
@@ -53,10 +48,10 @@ export const Navbar: React.FC = () => {
           <nav className="hidden lg:flex items-center gap-1 bg-slate-100/70 p-1.5 rounded-full border border-slate-200/60 shadow-inner">
             <Link
               to="/sell"
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
+              className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-all ${
                 isActive('/sell')
-                  ? 'bg-emerald-600 text-white shadow-emerald-sm'
-                  : 'text-slate-700 hover:text-emerald-700 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm'
+                  : 'text-slate-700 hover:text-rose-600 hover:bg-white/80'
               }`}
             >
               <Smartphone className="w-4 h-4" />
@@ -66,29 +61,12 @@ export const Navbar: React.FC = () => {
               </span>
             </Link>
 
-            {!isActive('/sell') && (
-              <Link
-                to="/buy"
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                  isActive('/buy')
-                    ? 'bg-emerald-600 text-white shadow-emerald-sm'
-                    : 'text-slate-700 hover:text-emerald-700 hover:bg-white/80'
-                }`}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Buy Certified</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase border border-rose-200">
-                  1-Yr War.
-                </span>
-              </Link>
-            )}
-
             <Link
               to="/track"
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-bold transition-all ${
                 isActive('/track')
-                  ? 'bg-emerald-600 text-white shadow-emerald-sm'
-                  : 'text-slate-700 hover:text-emerald-700 hover:bg-white/80'
+                  ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm'
+                  : 'text-slate-700 hover:text-rose-600 hover:bg-white/80'
               }`}
             >
               <Truck className="w-4 h-4" />
@@ -96,24 +74,8 @@ export const Navbar: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Actions: Cart & Profile / Login */}
+          {/* Actions: Profile / Login */}
           <div className="flex items-center gap-2.5">
-            {/* Cart Button (Hidden during evaluation / sell flow) */}
-            {!isActive('/sell') && (
-              <Link
-                to="/buy#cart"
-                className="relative p-2.5 rounded-2xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 transition"
-                aria-label="Shopping Cart"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                {totalCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs animate-bounce">
-                    {totalCount}
-                  </span>
-                )}
-              </Link>
-            )}
-
             {/* Auth Button or User Menu */}
             {user ? (
               <div className="relative">
@@ -121,7 +83,7 @@ export const Navbar: React.FC = () => {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center gap-2 py-1.5 pl-2 pr-3 rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 transition"
                 >
-                  <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-r from-rose-600 to-violet-600 text-white font-black text-xs flex items-center justify-center shadow-2xs">
                     {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
                   </div>
                   <span className="text-xs font-bold text-slate-800 max-w-[100px] truncate hidden sm:block">
@@ -141,46 +103,34 @@ export const Navbar: React.FC = () => {
                       </p>
                     </div>
 
-                    <div className="py-1">
-                      <Link
-                        to="/profile"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition"
-                      >
-                        <User className="w-4 h-4 text-slate-500" />
-                        <span>My Requests & Orders</span>
-                      </Link>
-                      <Link
-                        to="/track"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition"
-                      >
-                        <Truck className="w-4 h-4 text-slate-500" />
-                        <span>Track Doorstep Pickup</span>
-                      </Link>
-                    </div>
+                    <Link
+                      to="/track"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="w-full flex items-center gap-2 p-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-700 transition"
+                    >
+                      <Truck className="w-4 h-4 text-rose-600" />
+                      <span>My Pickup Requests</span>
+                    </Link>
 
-                    <div className="pt-1 border-t border-slate-100">
-                      <button
-                        onClick={() => {
-                          logout();
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-xl transition text-left"
-                      >
-                        <LogOut className="w-4 h-4 text-red-500" />
-                        <span>Log Out</span>
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-2 p-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Log Out</span>
+                    </button>
                   </div>
                 )}
               </div>
             ) : (
               <button
                 onClick={openAuthModal}
-                className="py-2 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
+                className="py-2 px-4 rounded-2xl bg-gradient-to-r from-rose-600 to-violet-600 hover:from-rose-700 hover:to-violet-700 text-white text-xs font-bold shadow-brand-sm transition flex items-center gap-1.5"
               >
-                <User className="w-3.5 h-3.5 text-emerald-400" />
+                <User className="w-3.5 h-3.5" />
                 <span>Log In</span>
               </button>
             )}
@@ -200,40 +150,24 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer Menu */}
       {isMobileDrawerOpen && (
         <div className="lg:hidden border-t border-slate-200 bg-white p-4 space-y-3 animate-slide-up">
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200/60 mb-2">
-            <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 text-rose-800 text-xs font-bold border border-rose-200/60 mb-2">
+            <MapPin className="w-4 h-4 text-rose-600 shrink-0" />
             <span>Doorstep Pickup Across Tamil Nadu</span>
           </div>
 
           <Link
             to="/sell"
             onClick={() => setIsMobileDrawerOpen(false)}
-            className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50 text-emerald-900 font-bold text-sm border border-emerald-200"
+            className="flex items-center justify-between p-3 rounded-2xl bg-rose-50 text-rose-900 font-bold text-sm border border-rose-200"
           >
             <div className="flex items-center gap-3">
-              <Smartphone className="w-5 h-5 text-emerald-700" />
+              <Smartphone className="w-5 h-5 text-rose-700" />
               <span>Sell Used Phone</span>
             </div>
-            <span className="text-[11px] bg-emerald-600 text-white px-2 py-0.5 rounded-full">
+            <span className="text-[11px] bg-gradient-to-r from-rose-600 to-violet-600 text-white px-2 py-0.5 rounded-full shadow-2xs font-bold">
               Instant Price
             </span>
           </Link>
-
-          {!isActive('/sell') && (
-            <Link
-              to="/buy"
-              onClick={() => setIsMobileDrawerOpen(false)}
-              className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-200"
-            >
-              <div className="flex items-center gap-3">
-                <ShoppingBag className="w-5 h-5 text-slate-700" />
-                <span>Buy Certified Phones</span>
-              </div>
-              <span className="text-[11px] bg-rose-100 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full font-bold">
-                Warranty
-              </span>
-            </Link>
-          )}
 
           <Link
             to="/track"
@@ -248,4 +182,3 @@ export const Navbar: React.FC = () => {
     </header>
   );
 };
-

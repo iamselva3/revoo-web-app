@@ -101,7 +101,7 @@ export const TrackOrderPage: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 animate-fade-in">
       <div className="text-center space-y-1">
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-2">
-          <Truck className="w-6 h-6 text-emerald-600" /> Track Pickup Request
+          <Truck className="w-6 h-6 text-rose-600" /> Track Pickup Request
         </h1>
         <p className="text-xs text-slate-500">
           Enter your Request Number or login to view real-time doorstep collection status
@@ -118,13 +118,13 @@ export const TrackOrderPage: React.FC = () => {
             placeholder="Enter Request ID (e.g. REV-89421)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs"
+            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-2xs"
           />
         </div>
         <button
           type="submit"
           disabled={isLoading}
-          className="py-3 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-emerald-sm transition"
+          className="py-3 px-6 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-bold text-xs shadow-brand-sm transition"
         >
           Track
         </button>
@@ -134,7 +134,7 @@ export const TrackOrderPage: React.FC = () => {
         <div className="text-center">
           <button
             onClick={openAuthModal}
-            className="text-xs font-bold text-emerald-600 hover:underline"
+            className="text-xs font-bold text-rose-600 hover:underline"
           >
             Or Log In to view all your past requests automatically →
           </button>
@@ -161,7 +161,7 @@ export const TrackOrderPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
                 {selectedRequest.status?.replace(/_/g, ' ') || 'CONFIRMED'}
               </span>
             </div>
@@ -183,7 +183,7 @@ export const TrackOrderPage: React.FC = () => {
             </div>
             <div>
               <span className="text-slate-400 font-medium">Expected Payout</span>
-              <p className="font-black text-emerald-600 text-sm mt-0.5">
+              <p className="font-black text-rose-600 text-sm mt-0.5">
                 ₹{selectedRequest.indicativeValuation?.toLocaleString('en-IN')}
               </p>
             </div>
@@ -201,14 +201,14 @@ export const TrackOrderPage: React.FC = () => {
                   {idx < 4 && (
                     <div
                       className={`absolute left-3.5 top-7 w-0.5 h-8 transition-colors ${
-                        step.done ? 'bg-emerald-600' : 'bg-slate-200'
+                        step.done ? 'bg-gradient-to-b from-rose-600 to-violet-600' : 'bg-slate-200'
                       }`}
                     />
                   )}
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 z-10 transition-colors ${
                       step.done
-                        ? 'bg-emerald-600 text-white shadow-emerald-sm'
+                        ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm'
                         : 'bg-slate-100 text-slate-400 border border-slate-300'
                     }`}
                   >
@@ -238,14 +238,14 @@ export const TrackOrderPage: React.FC = () => {
             <div
               key={r._id}
               onClick={() => setSelectedRequest(r)}
-              className="p-4 rounded-2xl bg-white border border-slate-200 shadow-card hover:border-emerald-500 cursor-pointer transition flex items-center justify-between"
+              className="p-4 rounded-2xl bg-white border border-slate-200 shadow-card hover:border-rose-500 cursor-pointer transition flex items-center justify-between"
             >
               <div>
                 <p className="font-bold text-xs text-slate-900">{r.device?.modelName}</p>
                 <p className="text-[11px] text-slate-400 font-mono">{r.requestNumber}</p>
               </div>
               <div className="text-right">
-                <span className="text-xs font-black text-emerald-600">
+                <span className="text-xs font-black text-rose-600">
                   ₹{r.indicativeValuation?.toLocaleString('en-IN')}
                 </span>
                 <span className="block text-[10px] text-slate-400">{r.scheduledPickupDate}</span>

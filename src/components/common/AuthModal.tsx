@@ -245,15 +245,15 @@ export const AuthModal: React.FC = () => {
         </button>
 
         {/* Modal Header */}
-        <div className="p-6 bg-gradient-to-br from-emerald-50 via-teal-50 to-white border-b border-emerald-100/60 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto mb-3 shadow-emerald-sm">
+        <div className="p-6 bg-gradient-to-br from-rose-50 via-pink-50 to-violet-50 border-b border-rose-100/60 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white flex items-center justify-center mx-auto mb-3 shadow-brand-sm">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
             Welcome to Genie
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Doorstep smartphone buyback & certified refurbished store
+            Doorstep smartphone buyback & certified circular tech
           </p>
         </div>
 
@@ -273,7 +273,7 @@ export const AuthModal: React.FC = () => {
             className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 rounded-2xl font-bold text-sm text-slate-800 shadow-2xs hover:shadow-xs transition-all flex items-center justify-center gap-3 active:scale-[0.99]"
           >
             {isGoogleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
+              <Loader2 className="w-5 h-5 animate-spin text-rose-600" />
             ) : (
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -310,19 +310,19 @@ export const AuthModal: React.FC = () => {
           <div className="flex items-center justify-center gap-1 mb-4 p-1 bg-slate-100 rounded-xl text-xs font-bold border border-slate-200/60">
             <button
               onClick={() => { setTab('otp'); setErrorMsg(null); setOtpSent(false); }}
-              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'otp' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'otp' ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm' : 'text-slate-600 hover:text-slate-900'}`}
             >
               Instant OTP
             </button>
             <button
               onClick={() => { setTab('password'); setErrorMsg(null); }}
-              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'password' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'password' ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm' : 'text-slate-600 hover:text-slate-900'}`}
             >
               Password
             </button>
             <button
               onClick={() => { setTab('signup'); setErrorMsg(null); }}
-              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'signup' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'signup' ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm' : 'text-slate-600 hover:text-slate-900'}`}
             >
               New User
             </button>
@@ -346,7 +346,7 @@ export const AuthModal: React.FC = () => {
                       placeholder="98765 43210"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white"
                       autoFocus
                     />
                   </div>
@@ -355,7 +355,7 @@ export const AuthModal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold text-sm shadow-emerald-sm transition flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
                 >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Get 6-Digit OTP</span> <ArrowRight className="w-4 h-4" /></>}
                 </button>
@@ -370,7 +370,7 @@ export const AuthModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setOtpSent(false)}
-                      className="text-[11px] font-bold text-emerald-600 hover:underline"
+                      className="text-[11px] font-bold text-rose-600 hover:underline"
                     >
                       Change Number
                     </button>
@@ -382,11 +382,11 @@ export const AuthModal: React.FC = () => {
                     placeholder="Enter OTP (e.g. 123456)"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-base text-center tracking-widest font-mono font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-base text-center tracking-widest font-mono font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white"
                     autoFocus
                   />
                   {debugOtp && (
-                    <span className="inline-block mt-2 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    <span className="inline-block mt-2 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                       Auto-filled OTP: <strong>{debugOtp}</strong>
                     </span>
                   )}
@@ -395,7 +395,7 @@ export const AuthModal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold text-sm shadow-emerald-sm transition flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
                 >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Verify & Continue</span> <CheckCircle2 className="w-4 h-4" /></>}
                 </button>
@@ -418,7 +418,7 @@ export const AuthModal: React.FC = () => {
                     placeholder="98765 43210"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                   />
                 </div>
               </div>
@@ -433,14 +433,14 @@ export const AuthModal: React.FC = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold text-sm shadow-emerald-sm transition flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Login'}
               </button>
@@ -457,7 +457,7 @@ export const AuthModal: React.FC = () => {
                   placeholder="e.g. Selva Kumar"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -472,7 +472,7 @@ export const AuthModal: React.FC = () => {
                     placeholder="98765 43210"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                   />
                 </div>
               </div>
@@ -485,14 +485,14 @@ export const AuthModal: React.FC = () => {
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold text-sm shadow-emerald-sm transition flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Account'}
               </button>

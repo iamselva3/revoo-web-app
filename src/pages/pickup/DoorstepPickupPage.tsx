@@ -8,14 +8,12 @@ import {
   Truck,
   MapPin,
   Calendar,
-  Clock,
   CreditCard,
   CheckCircle2,
   ArrowRight,
   Loader2,
   ShieldCheck,
   Smartphone,
-  ChevronRight,
 } from 'lucide-react';
 
 export const DoorstepPickupPage: React.FC = () => {
@@ -29,7 +27,7 @@ export const DoorstepPickupPage: React.FC = () => {
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [addressLine1, setAddressLine1] = useState<string>('');
-  const [addressLine2, setAddressLine2] = useState<string>('');
+  const [addressLine2] = useState<string>('');
   const [pincode, setPincode] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [state, setState] = useState<string>('Tamil Nadu');
@@ -144,7 +142,7 @@ export const DoorstepPickupPage: React.FC = () => {
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#059669', '#10b981', '#34d399', '#f59e0b'],
+        colors: ['#E11D48', '#EC4899', '#8B5CF6', '#F59E0B'],
       });
     } catch (err: any) {
       setErrorMsg(err.response?.data?.message || 'Failed to confirm booking. Please try again.');
@@ -156,7 +154,7 @@ export const DoorstepPickupPage: React.FC = () => {
   if (successBooking) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-6 animate-fade-in">
-        <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-emerald-sm">
+        <div className="w-20 h-20 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-brand-sm">
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
@@ -180,7 +178,7 @@ export const DoorstepPickupPage: React.FC = () => {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-500 font-medium">Expected Payout</span>
-            <span className="font-black text-emerald-600 text-base">
+            <span className="font-black text-rose-600 text-base">
               ₹{bookingData?.indicativeValuation?.toLocaleString('en-IN') || 'Quote'}
             </span>
           </div>
@@ -189,7 +187,7 @@ export const DoorstepPickupPage: React.FC = () => {
         <div className="flex flex-col gap-2 pt-2">
           <button
             onClick={() => navigate('/track')}
-            className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-emerald-sm transition"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-bold text-xs shadow-brand-sm transition"
           >
             Track Live Request Status
           </button>
@@ -208,7 +206,7 @@ export const DoorstepPickupPage: React.FC = () => {
   if (!user) {
     return (
       <div className="max-w-md mx-auto px-4 py-16 sm:py-24 text-center space-y-6 animate-fade-in">
-        <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-emerald-sm">
+        <div className="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto shadow-brand-sm">
           <ShieldCheck className="w-8 h-8" />
         </div>
 
@@ -222,10 +220,10 @@ export const DoorstepPickupPage: React.FC = () => {
         </div>
 
         {bookingData && (
-          <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-left flex items-center justify-between text-xs shadow-2xs">
+          <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-200 text-left flex items-center justify-between text-xs shadow-2xs">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-emerald-600" />
+                <Smartphone className="w-5 h-5 text-rose-600" />
               </div>
               <div>
                 <p className="font-extrabold text-slate-900">{bookingData.device?.modelName}</p>
@@ -234,7 +232,7 @@ export const DoorstepPickupPage: React.FC = () => {
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-400 font-bold uppercase">Locked Value</span>
-              <p className="font-black text-emerald-700 text-sm">
+              <p className="font-black text-rose-700 text-sm">
                 ₹{bookingData.indicativeValuation?.toLocaleString('en-IN')}
               </p>
             </div>
@@ -244,7 +242,7 @@ export const DoorstepPickupPage: React.FC = () => {
         <div className="space-y-2.5 pt-2">
           <button
             onClick={openAuthModal}
-            className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-emerald-sm hover:shadow-emerald-glow transition flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-black text-sm shadow-brand-glow transition flex items-center justify-center gap-2"
           >
             <span>Log In with Google / Mobile</span>
             <ArrowRight className="w-4 h-4" />
@@ -266,7 +264,7 @@ export const DoorstepPickupPage: React.FC = () => {
     return (
       <div className="max-w-md mx-auto px-4 py-16 sm:py-24 text-center space-y-6 animate-fade-in">
         <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-          <Smartphone className="w-8 h-8 text-emerald-600" />
+          <Smartphone className="w-8 h-8 text-rose-600" />
         </div>
 
         <div className="space-y-2">
@@ -280,7 +278,7 @@ export const DoorstepPickupPage: React.FC = () => {
 
         <button
           onClick={() => navigate('/sell')}
-          className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-emerald-sm transition flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-black text-sm shadow-brand-glow transition flex items-center justify-center gap-2"
         >
           <span>Select Device to Sell</span>
           <ArrowRight className="w-4 h-4" />
@@ -293,7 +291,7 @@ export const DoorstepPickupPage: React.FC = () => {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 animate-fade-in">
       <div className="text-center space-y-1">
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-2">
-          <Truck className="w-6 h-6 text-emerald-600" /> Book Doorstep Pickup
+          <Truck className="w-6 h-6 text-rose-600" /> Book Doorstep Pickup
         </h1>
         <p className="text-xs text-slate-500">
           We service all districts across Tamil Nadu with free pickup and on-spot payment
@@ -302,10 +300,10 @@ export const DoorstepPickupPage: React.FC = () => {
 
       {/* Valuation summary strip */}
       {bookingData && (
-        <div className="p-4 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-white border border-emerald-200/80 flex items-center justify-between">
+        <div className="p-4 rounded-3xl bg-gradient-to-r from-rose-50 via-pink-50 to-violet-50 border border-rose-200/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-14 bg-white rounded-xl p-1 border border-slate-200 flex items-center justify-center">
-              <Smartphone className="w-6 h-6 text-emerald-600" />
+              <Smartphone className="w-6 h-6 text-rose-600" />
             </div>
             <div>
               <h3 className="font-black text-sm text-slate-900">
@@ -318,7 +316,7 @@ export const DoorstepPickupPage: React.FC = () => {
           </div>
           <div className="text-right">
             <span className="text-[10px] font-bold text-slate-400 uppercase">Guaranteed Payout</span>
-            <p className="text-lg font-black text-emerald-700">
+            <p className="text-lg font-black text-rose-700">
               ₹{bookingData.indicativeValuation?.toLocaleString('en-IN')}
             </p>
           </div>
@@ -335,7 +333,7 @@ export const DoorstepPickupPage: React.FC = () => {
         {/* Contact info */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-card space-y-4">
           <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" /> 1. Contact Information
+            <ShieldCheck className="w-4 h-4 text-rose-600" /> 1. Contact Information
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -346,7 +344,7 @@ export const DoorstepPickupPage: React.FC = () => {
                 placeholder="e.g. Ramesh Kumar"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
             <div>
@@ -357,7 +355,7 @@ export const DoorstepPickupPage: React.FC = () => {
                 placeholder="98765 43210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
           </div>
@@ -366,7 +364,7 @@ export const DoorstepPickupPage: React.FC = () => {
         {/* Pickup address with India Geo autocomplete */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-card space-y-4">
           <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-emerald-600" /> 2. Pickup Address (Doorstep Location)
+            <MapPin className="w-4 h-4 text-rose-600" /> 2. Pickup Address (Doorstep Location)
           </h2>
           <div className="space-y-3">
             <div>
@@ -379,7 +377,7 @@ export const DoorstepPickupPage: React.FC = () => {
                 placeholder="e.g. No. 42, North Mada Street, Near Anna Nagar Post Office"
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
 
@@ -388,7 +386,7 @@ export const DoorstepPickupPage: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Pincode</span>
-                  {isPincodeLoading && <span className="text-[10px] text-emerald-600">Checking...</span>}
+                  {isPincodeLoading && <span className="text-[10px] text-rose-600">Checking...</span>}
                 </label>
                 <input
                   type="text"
@@ -397,7 +395,7 @@ export const DoorstepPickupPage: React.FC = () => {
                   placeholder="e.g. 600001"
                   value={pincode}
                   onChange={(e) => handlePincodeChange(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -407,7 +405,7 @@ export const DoorstepPickupPage: React.FC = () => {
                 <select
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   {statesList.map((s, idx) => {
                     const label = typeof s === 'string' ? s : (s as any)?.name || (s as any)?.state || '';
@@ -430,7 +428,7 @@ export const DoorstepPickupPage: React.FC = () => {
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   list="city-options"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
                 <datalist id="city-options">
                   {citiesList.map((c, idx) => {
@@ -448,7 +446,7 @@ export const DoorstepPickupPage: React.FC = () => {
         {/* Date & Time Slot */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-card space-y-4">
           <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-emerald-600" /> 3. Select Pickup Date & Slot
+            <Calendar className="w-4 h-4 text-rose-600" /> 3. Select Pickup Date & Slot
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -459,7 +457,7 @@ export const DoorstepPickupPage: React.FC = () => {
                 value={pickupDate}
                 onChange={(e) => setPickupDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
 
@@ -468,7 +466,7 @@ export const DoorstepPickupPage: React.FC = () => {
               <select
                 value={timeWindow}
                 onChange={(e) => setTimeWindow(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="Morning (10:00 AM - 01:00 PM)">Morning (10:00 AM - 01:00 PM)</option>
                 <option value="Afternoon (01:00 PM - 04:00 PM)">Afternoon (01:00 PM - 04:00 PM)</option>
@@ -481,7 +479,7 @@ export const DoorstepPickupPage: React.FC = () => {
         {/* Payment preference */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-card space-y-4">
           <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-emerald-600" /> 4. Payout Method (On Device Handover)
+            <CreditCard className="w-4 h-4 text-rose-600" /> 4. Payout Method (On Device Handover)
           </h2>
           <div className="grid grid-cols-3 gap-2">
             {[
@@ -495,8 +493,8 @@ export const DoorstepPickupPage: React.FC = () => {
                 onClick={() => setPaymentMethod(p.id as any)}
                 className={`p-3 rounded-2xl border text-center transition ${
                   paymentMethod === p.id
-                    ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500 font-bold text-emerald-950'
-                    : 'bg-slate-50 border-slate-200 text-slate-700'
+                    ? 'bg-rose-50 border-2 border-rose-600 font-bold text-rose-950 shadow-brand-sm'
+                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                 }`}
               >
                 <p className="text-xs font-bold">{p.label}</p>
@@ -513,7 +511,7 @@ export const DoorstepPickupPage: React.FC = () => {
                 placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
           )}
@@ -549,7 +547,7 @@ export const DoorstepPickupPage: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-sm shadow-emerald-glow transition flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-black text-sm shadow-brand-glow transition flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
@@ -568,4 +566,3 @@ export const DoorstepPickupPage: React.FC = () => {
     </div>
   );
 };
-

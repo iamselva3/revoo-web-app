@@ -44,7 +44,7 @@ export const PromotionalPopup: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-emerald-100 animate-slide-up">
+      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-rose-100 animate-slide-up">
         {/* Close Button */}
         <button
           onClick={() => setIsOpen(false)}
@@ -68,15 +68,15 @@ export const PromotionalPopup: React.FC = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
             <div className="absolute bottom-3 left-4">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500 text-white shadow-sm">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-sm">
                 <Sparkles className="w-3 h-3" /> Special Promo
               </span>
             </div>
           </div>
         ) : (
-          <div className="h-28 bg-gradient-to-r from-emerald-600 to-teal-700 flex items-center justify-center">
+          <div className="h-28 bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 flex items-center justify-center">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-white/20 text-white backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-200" /> Exclusive Offer
+              <Sparkles className="w-3.5 h-3.5 text-rose-200" /> Exclusive Offer
             </span>
           </div>
         )}
@@ -93,7 +93,7 @@ export const PromotionalPopup: React.FC = () => {
           <div className="pt-3 flex flex-col gap-2">
             <button
               onClick={handleAction}
-              className="w-full py-3 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-emerald-sm hover:shadow-emerald-glow transition-all flex items-center justify-center gap-2 group"
+              className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-bold text-sm shadow-brand-glow transition-all flex items-center justify-center gap-2 group"
             >
               <span>{popup.ctaText || 'Claim Offer Now'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

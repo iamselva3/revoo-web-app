@@ -60,6 +60,8 @@ export default {
       boxShadow: {
         'emerald-glow': '0 10px 25px -5px rgba(5, 150, 105, 0.25), 0 8px 10px -6px rgba(5, 150, 105, 0.2)',
         'emerald-sm': '0 4px 12px rgba(5, 150, 105, 0.15)',
+        'brand-glow': '0 10px 25px -5px rgba(225, 29, 72, 0.35), 0 8px 10px -6px rgba(139, 92, 246, 0.3)',
+        'brand-sm': '0 4px 14px rgba(225, 29, 72, 0.25)',
         'card': '0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 1px 4px -1px rgba(0, 0, 0, 0.03)',
         'card-hover': '0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04)',
       },

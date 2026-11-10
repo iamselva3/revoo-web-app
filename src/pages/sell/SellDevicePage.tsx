@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { catalogueApi } from '../../api/catalogue';
 import { resolveImageUrl } from '../../api/client';
 import { Brand, SmartphoneModel, DeviceVariant } from '../../types';
 import confetti from 'canvas-confetti';
 import {
   Smartphone,
-  ChevronRight,
   ArrowLeft,
-  CheckCircle2,
   Sparkles,
   ShieldAlert,
-  BatteryMedium,
   Check,
   X,
-  Package,
   Cpu,
   ArrowRight,
-  Tag,
   Loader2,
   Search,
   Wifi,
@@ -30,6 +26,7 @@ import {
   Radio,
   Zap,
   Activity,
+  UserCheck,
 } from 'lucide-react';
 import { BackPanelIllustration, SidePanelIllustration } from '../../components/sell/DeviceConditionIllustrations';
 
@@ -94,6 +91,7 @@ export const getFallbackVariantsForDevice = (modelName: string): DeviceVariant[]
 export const SellDevicePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user, openAuthModal } = useAuth();
 
   // Step flow: 1=Brand, 2=Model, 3=Variant, 4=Condition (with 4 sub-steps like mobile app), 5=Quote
   const [step, setStep] = useState<number>(1);
@@ -139,10 +137,10 @@ export const SellDevicePage: React.FC = () => {
   const [hasValidBill, setHasValidBill] = useState<boolean>(false);
 
   // Legacy fallback compatibility
-  const [displayCondition, setDisplayCondition] = useState<string>('FLAWLESS');
-  const [bodyCondition, setBodyCondition] = useState<string>('FLAWLESS');
-  const [batteryCondition, setBatteryCondition] = useState<string>('EXCELLENT');
-  const [functionalFaults, setFunctionalFaults] = useState<Record<string, boolean>>({
+  const [displayCondition] = useState<string>('FLAWLESS');
+  const [bodyCondition] = useState<string>('FLAWLESS');
+  const [batteryCondition] = useState<string>('EXCELLENT');
+  const [functionalFaults] = useState<Record<string, boolean>>({
     frontCameraFaulty: false,
     backCameraFaulty: false,
     faceIdOrFingerprintFaulty: false,
@@ -255,6 +253,13 @@ export const SellDevicePage: React.FC = () => {
   // Trigger Valuation Engine
   const handleCalculateEstimate = async () => {
     if (!selectedModel) return;
+
+    // Check if user is logged in before calculating / displaying price
+    if (!user) {
+      openAuthModal();
+      return;
+    }
+
     setIsCalculating(true);
 
     const isWorking = isPhoneWorking !== false;
@@ -338,12 +343,12 @@ export const SellDevicePage: React.FC = () => {
       }
       setCalculatedQuote(quote);
       setStep(5);
-      // Trigger celebration confetti with Genie colors
+      // Trigger celebration confetti with brand colors
       confetti({
         particleCount: 90,
         spread: 60,
         origin: { y: 0.6 },
-        colors: ['#F59E0B', '#8B5CF6', '#EC4899', '#D97706'],
+        colors: ['#E11D48', '#8B5CF6', '#EC4899', '#F59E0B'],
       });
     } catch {
       const bp = selectedModel.basePrice || 22000;
@@ -410,13 +415,13 @@ export const SellDevicePage: React.FC = () => {
             )}
             {step === 5 && 'Step 5: Guaranteed Valuation'}
           </span>
-          <span className="text-emerald-700 font-extrabold">
+          <span className="text-rose-600 font-extrabold">
             {step < 4 ? `${step} of 5` : step === 4 ? `4.${evalSubStep} of 5` : '5 of 5'}
           </span>
         </div>
         <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
           <div
-            className="bg-emerald-600 h-full rounded-full transition-all duration-300"
+            className="bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 h-full rounded-full transition-all duration-300"
             style={{
               width: `${
                 step === 1 ? 20 :
@@ -444,7 +449,7 @@ export const SellDevicePage: React.FC = () => {
 
           {isLoadingBrands ? (
             <div className="py-20 text-center flex flex-col items-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+              <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
               <span className="text-xs font-medium">Loading brands...</span>
             </div>
           ) : (
@@ -453,7 +458,7 @@ export const SellDevicePage: React.FC = () => {
                 <button
                   key={brand._id || brand.slug || `brand-${idx}`}
                   onClick={() => handleSelectBrand(brand)}
-                  className="flex flex-col items-center justify-center p-6 rounded-3xl bg-white border border-slate-200/90 shadow-card hover:shadow-card-hover hover:border-emerald-500 transition-all group"
+                  className="flex flex-col items-center justify-center p-6 rounded-3xl bg-white border border-slate-200/90 shadow-card hover:shadow-card-hover hover:border-rose-500 transition-all group"
                 >
                   <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center p-2 mb-3 group-hover:scale-105 transition">
                     {brand.logoUrl ? (
@@ -463,10 +468,10 @@ export const SellDevicePage: React.FC = () => {
                         className="max-w-full max-h-full object-contain filter grayscale group-hover:grayscale-0 transition"
                       />
                     ) : (
-                      <Smartphone className="w-8 h-8 text-slate-400 group-hover:text-emerald-600 transition" />
+                      <Smartphone className="w-8 h-8 text-slate-400 group-hover:text-rose-600 transition" />
                     )}
                   </div>
-                  <span className="font-extrabold text-sm text-slate-800 group-hover:text-emerald-700 transition">
+                  <span className="font-extrabold text-sm text-slate-800 group-hover:text-rose-600 transition">
                     {brand.name}
                   </span>
                   <span className="text-[11px] text-slate-400 mt-0.5">Explore Models</span>
@@ -488,7 +493,7 @@ export const SellDevicePage: React.FC = () => {
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Brands</span>
             </button>
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
               Brand: {selectedBrand?.name}
             </span>
           </div>
@@ -500,14 +505,14 @@ export const SellDevicePage: React.FC = () => {
               placeholder={`Search ${selectedBrand?.name || ''} model (e.g. Pixel 8, iPhone 15)...`}
               value={searchModelQuery}
               onChange={(e) => setSearchModelQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs"
+              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-2xs"
               autoFocus
             />
           </div>
 
           {isLoadingModels ? (
             <div className="py-20 text-center flex flex-col items-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+              <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
               <span className="text-xs font-medium">Fetching models...</span>
             </div>
           ) : filteredModels.length === 0 ? (
@@ -520,7 +525,7 @@ export const SellDevicePage: React.FC = () => {
                 <button
                   key={m._id || m.slug || `model-${idx}`}
                   onClick={() => handleSelectModel(m)}
-                  className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-card hover:shadow-card-hover hover:border-emerald-500 transition-all flex items-center gap-3 text-left group"
+                  className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-card hover:shadow-card-hover hover:border-rose-500 transition-all flex items-center gap-3 text-left group"
                 >
                   <div className="w-16 h-20 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2 shrink-0 overflow-hidden group-hover:scale-105 transition">
                     <img
@@ -533,7 +538,7 @@ export const SellDevicePage: React.FC = () => {
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-700 transition truncate">
+                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-rose-600 transition truncate">
                       {m.name}
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">
@@ -574,7 +579,7 @@ export const SellDevicePage: React.FC = () => {
               />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
                 {selectedBrand?.name || 'Device'}
               </span>
               <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-tight mt-1">
@@ -597,7 +602,7 @@ export const SellDevicePage: React.FC = () => {
 
           {isLoadingVariants ? (
             <div className="py-12 text-center flex flex-col items-center gap-3 text-slate-400">
-              <Loader2 className="w-7 h-7 text-emerald-600 animate-spin" />
+              <Loader2 className="w-7 h-7 text-rose-600 animate-spin" />
               <span className="text-xs font-medium">Loading storage variants...</span>
             </div>
           ) : (
@@ -615,27 +620,27 @@ export const SellDevicePage: React.FC = () => {
                     onClick={() => handleSelectVariant(v)}
                     className={`w-full p-4 rounded-2xl border transition flex items-center justify-between text-left group ${
                       isSelected
-                        ? 'bg-emerald-50/80 border-2 border-emerald-600 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-emerald-500 hover:shadow-card shadow-xs'
+                        ? 'bg-rose-50/80 border-2 border-rose-600 shadow-brand-sm'
+                        : 'bg-white border-slate-200 hover:border-rose-500 hover:shadow-card shadow-xs'
                     }`}
                   >
                     <div className="flex items-center gap-3.5">
                       <div
                         className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-xs transition ${
                           isSelected
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-slate-100 text-slate-700 group-hover:bg-emerald-50 group-hover:text-emerald-700'
+                            ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white'
+                            : 'bg-slate-100 text-slate-700 group-hover:bg-rose-50 group-hover:text-rose-600'
                         }`}
                       >
                         <Cpu className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="font-extrabold text-base text-slate-900 group-hover:text-emerald-700 transition">
+                        <h4 className="font-extrabold text-base text-slate-900 group-hover:text-rose-600 transition">
                           {v.capacity}
                         </h4>
                         <span
                           className={`text-xs font-semibold ${
-                            v.priceModifier > 0 ? 'text-emerald-700 font-bold' : 'text-slate-400'
+                            v.priceModifier > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'
                           }`}
                         >
                           {bonusText}
@@ -646,8 +651,8 @@ export const SellDevicePage: React.FC = () => {
                       <div
                         className={`w-6 h-6 rounded-full border flex items-center justify-center transition ${
                           isSelected
-                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
-                            : 'border-slate-300 text-transparent group-hover:border-emerald-400'
+                            ? 'bg-gradient-to-r from-rose-600 to-violet-600 border-rose-600 text-white shadow-2xs'
+                            : 'border-slate-300 text-transparent group-hover:border-rose-400'
                         }`}
                       >
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
@@ -698,7 +703,7 @@ export const SellDevicePage: React.FC = () => {
                 <h3 className="font-extrabold text-sm text-slate-900 leading-tight">
                   {selectedModel.name}
                 </h3>
-                <p className="text-[11px] font-semibold text-emerald-700">
+                <p className="text-[11px] font-semibold text-rose-600">
                   {selectedVariant?.capacity || 'Standard'} •{' '}
                   <span className="text-slate-500">
                     {evalSubStep === 1 && 'Step 1 of 4: Basic Health'}
@@ -737,31 +742,36 @@ export const SellDevicePage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3 pt-1">
                     <button
                       type="button"
-                      onClick={() => setIsPhoneWorking(true)}
+                      onClick={() => {
+                        setIsPhoneWorking(true);
+                        setIsTouchscreenWorking(null);
+                        setIsDisplayOriginal(null);
+                        setHasValidWarranty(null);
+                      }}
                       className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                         isPhoneWorking === true
-                          ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                          : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                          ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white font-extrabold shadow-brand-sm border-2 border-rose-600'
+                          : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      <Check className={`w-4 h-4 ${isPhoneWorking === true ? 'text-rose-600' : 'text-slate-400'}`} />
+                      <Check className={`w-4 h-4 ${isPhoneWorking === true ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                       <span>Yes</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => {
                         setIsPhoneWorking(false);
-                        setIsTouchscreenWorking(false);
-                        setIsDisplayOriginal(false);
-                        setHasValidWarranty(false);
+                        setIsTouchscreenWorking(null);
+                        setIsDisplayOriginal(null);
+                        setHasValidWarranty(null);
                       }}
                       className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                         isPhoneWorking === false
-                          ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                          : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                          ? 'bg-slate-900 text-white font-extrabold shadow-sm border-2 border-slate-900'
+                          : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      <X className={`w-4 h-4 ${isPhoneWorking === false ? 'text-rose-600' : 'text-slate-400'}`} />
+                      <X className={`w-4 h-4 ${isPhoneWorking === false ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                       <span>No</span>
                     </button>
                   </div>
@@ -794,30 +804,34 @@ export const SellDevicePage: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3 pt-1">
                       <button
                         type="button"
-                        onClick={() => setIsTouchscreenWorking(true)}
+                        onClick={() => {
+                          setIsTouchscreenWorking(true);
+                          setIsDisplayOriginal(null);
+                          setHasValidWarranty(null);
+                        }}
                         className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                           isTouchscreenWorking === true
-                            ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                            : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white font-extrabold shadow-brand-sm border-2 border-rose-600'
+                            : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
-                        <Check className={`w-4 h-4 ${isTouchscreenWorking === true ? 'text-rose-600' : 'text-slate-400'}`} />
+                        <Check className={`w-4 h-4 ${isTouchscreenWorking === true ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                         <span>Yes</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => {
                           setIsTouchscreenWorking(false);
-                          setIsDisplayOriginal(false);
-                          setHasValidWarranty(false);
+                          setIsDisplayOriginal(null);
+                          setHasValidWarranty(null);
                         }}
                         className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                           isTouchscreenWorking === false
-                            ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                            : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-slate-900 text-white font-extrabold shadow-sm border-2 border-slate-900'
+                            : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
-                        <X className={`w-4 h-4 ${isTouchscreenWorking === false ? 'text-rose-600' : 'text-slate-400'}`} />
+                        <X className={`w-4 h-4 ${isTouchscreenWorking === false ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                         <span>No</span>
                       </button>
                     </div>
@@ -856,11 +870,11 @@ export const SellDevicePage: React.FC = () => {
                           onClick={() => setIsDisplayOriginal(true)}
                           className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                             isDisplayOriginal === true
-                              ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                              ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white font-extrabold shadow-brand-sm border-2 border-rose-600'
+                              : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
-                          <Check className={`w-4 h-4 ${isDisplayOriginal === true ? 'text-rose-600' : 'text-slate-400'}`} />
+                          <Check className={`w-4 h-4 ${isDisplayOriginal === true ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                           <span>Yes</span>
                         </button>
                         <button
@@ -868,11 +882,11 @@ export const SellDevicePage: React.FC = () => {
                           onClick={() => setIsDisplayOriginal(false)}
                           className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                             isDisplayOriginal === false
-                              ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                              ? 'bg-slate-900 text-white font-extrabold shadow-sm border-2 border-slate-900'
+                              : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
-                          <X className={`w-4 h-4 ${isDisplayOriginal === false ? 'text-rose-600' : 'text-slate-400'}`} />
+                          <X className={`w-4 h-4 ${isDisplayOriginal === false ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                           <span>No</span>
                         </button>
                       </div>
@@ -894,11 +908,11 @@ export const SellDevicePage: React.FC = () => {
                           onClick={() => setHasValidWarranty(true)}
                           className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                             hasValidWarranty === true
-                              ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                              ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white font-extrabold shadow-brand-sm border-2 border-rose-600'
+                              : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
-                          <Check className={`w-4 h-4 ${hasValidWarranty === true ? 'text-rose-600' : 'text-slate-400'}`} />
+                          <Check className={`w-4 h-4 ${hasValidWarranty === true ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                           <span>Yes</span>
                         </button>
                         <button
@@ -906,11 +920,11 @@ export const SellDevicePage: React.FC = () => {
                           onClick={() => setHasValidWarranty(false)}
                           className={`h-11 sm:h-12 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs sm:text-sm transition-all ${
                             hasValidWarranty === false
-                              ? 'border-2 border-rose-600 bg-rose-50/80 text-rose-700 shadow-xs'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                              ? 'bg-slate-900 text-white font-extrabold shadow-sm border-2 border-slate-900'
+                              : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
-                          <X className={`w-4 h-4 ${hasValidWarranty === false ? 'text-rose-600' : 'text-slate-400'}`} />
+                          <X className={`w-4 h-4 ${hasValidWarranty === false ? 'text-white stroke-[3]' : 'text-slate-400'}`} />
                           <span>No</span>
                         </button>
                       </div>
@@ -925,7 +939,7 @@ export const SellDevicePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setEvalSubStep(4)}
-                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-extrabold text-xs shadow-brand-sm transition flex items-center justify-center gap-2"
                   >
                     <span>Proceed to Verification & Accessories</span>
                     <ArrowRight className="w-4 h-4" />
@@ -934,7 +948,7 @@ export const SellDevicePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setEvalSubStep(2)}
-                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-extrabold text-xs shadow-brand-sm transition flex items-center justify-center gap-2"
                   >
                     <span>Proceed to Body Assessment</span>
                     <ArrowRight className="w-4 h-4" />
@@ -944,7 +958,7 @@ export const SellDevicePage: React.FC = () => {
                     type="button"
                     disabled={isDisplayOriginal === null || hasValidWarranty === null}
                     onClick={() => setEvalSubStep(2)}
-                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-brand-sm transition flex items-center justify-center gap-2"
                   >
                     <span>Next: Body & Frame Condition</span>
                     <ArrowRight className="w-4 h-4" />
@@ -987,8 +1001,8 @@ export const SellDevicePage: React.FC = () => {
                           onClick={() => setBackPanelCondition(opt.id)}
                           className={`p-3 sm:p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between relative group ${
                             isSelected
-                              ? 'bg-rose-50/80 border-2 border-rose-600 shadow-xs'
-                              : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+                              ? 'bg-rose-50/80 border-2 border-rose-600 shadow-brand-sm'
+                              : 'bg-white border-slate-200 hover:border-rose-400 hover:shadow-2xs'
                           }`}
                         >
                           <div className="h-24 flex items-center justify-center pt-1">
@@ -1003,7 +1017,7 @@ export const SellDevicePage: React.FC = () => {
                             </p>
                           </div>
                           {isSelected && (
-                            <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xs">
+                            <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-gradient-to-r from-rose-600 to-violet-600 text-white flex items-center justify-center shadow-xs">
                               <Check className="w-3 h-3 stroke-[3]" />
                             </div>
                           )}
@@ -1033,8 +1047,8 @@ export const SellDevicePage: React.FC = () => {
                           onClick={() => setSidePanelCondition(opt.id)}
                           className={`p-3 sm:p-4 rounded-2xl border text-center transition flex flex-col items-center justify-between relative group ${
                             isSelected
-                              ? 'bg-rose-50/80 border-2 border-rose-600 shadow-xs'
-                              : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+                              ? 'bg-rose-50/80 border-2 border-rose-600 shadow-brand-sm'
+                              : 'bg-white border-slate-200 hover:border-rose-400 hover:shadow-2xs'
                           }`}
                         >
                           <div className="h-24 flex items-center justify-center pt-1">
@@ -1049,7 +1063,7 @@ export const SellDevicePage: React.FC = () => {
                             </p>
                           </div>
                           {isSelected && (
-                            <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xs">
+                            <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-gradient-to-r from-rose-600 to-violet-600 text-white flex items-center justify-center shadow-xs">
                               <Check className="w-3 h-3 stroke-[3]" />
                             </div>
                           )}
@@ -1072,7 +1086,7 @@ export const SellDevicePage: React.FC = () => {
                   type="button"
                   disabled={!backPanelCondition || !sidePanelCondition}
                   onClick={() => setEvalSubStep(3)}
-                  className="py-3 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition flex items-center gap-2"
+                  className="py-3 px-8 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-brand-sm transition flex items-center gap-2"
                 >
                   <span>Next: Hardware & Sensors</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1081,7 +1095,7 @@ export const SellDevicePage: React.FC = () => {
             </div>
           )}
 
-          {/* SUBSTEP 3: HARDWARE & SENSOR FAULTS */}
+          {/* SUBSTEP 3: HARDWARE & SENSOR FAULTS (Untruncated labels matching mobile) */}
           {evalSubStep === 3 && (
             <div className="space-y-5 animate-fade-in">
               <div className="text-center max-w-md mx-auto space-y-1">
@@ -1094,12 +1108,12 @@ export const SellDevicePage: React.FC = () => {
               </div>
 
               <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-card space-y-3">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                   {[
                     { key: 'powerButtonNotWorking', label: 'Power Button', icon: Power },
                     { key: 'volumeButtonNotWorking', label: 'Volume Buttons', icon: Volume2 },
                     { key: 'chargingPortNotWorking', label: 'Charging Port', icon: Zap },
-                    { key: 'earSpeakerNotWorking', label: 'Ear Speaker / Low', icon: Volume2 },
+                    { key: 'earSpeakerNotWorking', label: 'Ear Speaker / Low Volume', icon: Volume2 },
                     { key: 'proximitySensorNotWorking', label: 'Proximity Sensor', icon: Radio },
                     { key: 'wifiOrBluetoothNotWorking', label: 'WiFi / Bluetooth', icon: Wifi },
                     { key: 'vibratorNotWorking', label: 'Vibrator Motor', icon: Activity },
@@ -1123,17 +1137,17 @@ export const SellDevicePage: React.FC = () => {
                             [item.key]: !prev[item.key],
                           }))
                         }
-                        className={`p-3 rounded-2xl border text-left transition flex items-center justify-between gap-2 ${
+                        className={`p-3.5 rounded-2xl border text-left transition flex items-center justify-between gap-2.5 ${
                           isFaulty
-                            ? 'bg-rose-50/80 border-2 border-rose-600 font-bold text-rose-900 shadow-2xs'
-                            : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 text-slate-700'
+                            ? 'bg-rose-50/90 border-2 border-rose-600 font-bold text-rose-900 shadow-2xs'
+                            : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700'
                         }`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           <IconComponent className={`w-4 h-4 shrink-0 ${isFaulty ? 'text-rose-600' : 'text-slate-400'}`} />
-                          <span className="truncate text-xs font-semibold">{item.label}</span>
+                          <span className="text-xs font-semibold leading-tight text-slate-800 break-words">{item.label}</span>
                         </div>
-                        <span className={`text-[11px] font-black shrink-0 ${isFaulty ? 'text-rose-600' : 'text-slate-300'}`}>
+                        <span className={`text-[11px] font-black shrink-0 px-2 py-0.5 rounded-full ${isFaulty ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-400'}`}>
                           {isFaulty ? '✕ Fault' : '✓ OK'}
                         </span>
                       </button>
@@ -1153,7 +1167,7 @@ export const SellDevicePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEvalSubStep(4)}
-                  className="py-3 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-2"
+                  className="py-3 px-8 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-extrabold text-xs shadow-brand-sm transition flex items-center gap-2"
                 >
                   <span>Next: Original Accessories</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1180,42 +1194,48 @@ export const SellDevicePage: React.FC = () => {
                     type="button"
                     onClick={() => setHasOriginalCharger(!hasOriginalCharger)}
                     className={`p-4 rounded-2xl border transition flex items-center justify-between ${
-                      hasOriginalCharger ? 'bg-amber-50 border-amber-500 font-bold text-amber-900 ring-1 ring-amber-500' : 'bg-slate-50 border-slate-200 text-slate-600'
+                      hasOriginalCharger
+                        ? 'bg-rose-50 border-2 border-rose-500 font-bold text-rose-950 shadow-brand-sm'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
                     <div>
                       <p className="font-bold">Original Charger</p>
                       <p className="text-[11px] text-slate-400 mt-0.5">Available (+₹250 bonus)</p>
                     </div>
-                    {hasOriginalCharger && <Check className="w-4 h-4 text-amber-600 shrink-0" />}
+                    {hasOriginalCharger && <Check className="w-4 h-4 text-rose-600 shrink-0" />}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setHasOriginalBox(!hasOriginalBox)}
                     className={`p-4 rounded-2xl border transition flex items-center justify-between ${
-                      hasOriginalBox ? 'bg-amber-50 border-amber-500 font-bold text-amber-900 ring-1 ring-amber-500' : 'bg-slate-50 border-slate-200 text-slate-600'
+                      hasOriginalBox
+                        ? 'bg-rose-50 border-2 border-rose-500 font-bold text-rose-950 shadow-brand-sm'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
                     <div>
                       <p className="font-bold">Device Box with IMEI</p>
                       <p className="text-[11px] text-slate-400 mt-0.5">Available (+₹150 bonus)</p>
                     </div>
-                    {hasOriginalBox && <Check className="w-4 h-4 text-amber-600 shrink-0" />}
+                    {hasOriginalBox && <Check className="w-4 h-4 text-rose-600 shrink-0" />}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setHasValidBill(!hasValidBill)}
                     className={`p-4 rounded-2xl border transition flex items-center justify-between ${
-                      hasValidBill ? 'bg-amber-50 border-amber-500 font-bold text-amber-900 ring-1 ring-amber-500' : 'bg-slate-50 border-slate-200 text-slate-600'
+                      hasValidBill
+                        ? 'bg-rose-50 border-2 border-rose-500 font-bold text-rose-950 shadow-brand-sm'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
                     <div>
                       <p className="font-bold">Valid Bill / Invoice</p>
                       <p className="text-[11px] text-slate-400 mt-0.5">Available (+₹210 bonus)</p>
                     </div>
-                    {hasValidBill && <Check className="w-4 h-4 text-amber-600 shrink-0" />}
+                    {hasValidBill && <Check className="w-4 h-4 text-rose-600 shrink-0" />}
                   </button>
                 </div>
               </div>
@@ -1232,7 +1252,7 @@ export const SellDevicePage: React.FC = () => {
                   type="button"
                   onClick={handleCalculateEstimate}
                   disabled={isCalculating}
-                  className="py-4 px-10 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-sm shadow-emerald-glow transition flex items-center gap-2"
+                  className="py-4 px-10 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-black text-sm shadow-brand-glow hover:shadow-brand-glow transition-all flex items-center gap-2"
                 >
                   {isCalculating ? (
                     <>
@@ -1253,79 +1273,102 @@ export const SellDevicePage: React.FC = () => {
         </div>
       )}
 
-      {/* STEP 5: Final Quote Screen */}
+      {/* STEP 5: Final Quote Screen (Login Gated) */}
       {step === 5 && selectedModel && (
         <div className="space-y-6 animate-fade-in max-w-xl mx-auto">
-          <div className="bg-white rounded-3xl border border-emerald-200 p-6 sm:p-8 shadow-emerald-glow text-center space-y-6 relative overflow-hidden">
-            <div className="w-20 h-24 mx-auto bg-slate-50 rounded-2xl p-2 border border-slate-100 flex items-center justify-center">
-              <img
-                src={resolveImageUrl(selectedModel.imageUrl, selectedModel.slug)}
-                alt={selectedModel.name}
-                className="max-h-full max-w-full object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/uploads/devices/pixel-7a.png';
-                }}
-              />
-            </div>
-
-            <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 mb-2">
-                <Sparkles className="w-3.5 h-3.5" /> Guaranteed Doorstep Buyback Offer
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900">
-                {selectedModel.name} ({selectedVariant?.capacity})
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Condition evaluated with instant doorstep verification
-              </p>
-            </div>
-
-            {/* Big Price Tag */}
-            <div className="py-4 px-6 rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-emerald-sm">
-              <span className="text-xs uppercase tracking-widest font-extrabold text-emerald-200">
-                Calculated Valuation
-              </span>
-              <div className="text-4xl sm:text-5xl font-black tracking-tight mt-1">
-                ₹{calculatedQuote.toLocaleString('en-IN')}
+          {!user ? (
+            <div className="bg-white rounded-3xl border border-rose-200 p-8 shadow-brand-glow text-center space-y-5">
+              <div className="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto shadow-brand-sm">
+                <UserCheck className="w-8 h-8" />
               </div>
-              <p className="text-[11px] text-emerald-100 mt-2">
-                ⚡ Direct Bank Transfer or UPI upon pickup
-              </p>
-            </div>
-
-            {/* Guarantee points */}
-            <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 pt-2 border-t border-slate-100">
-              <div className="p-2 bg-slate-50 rounded-xl">
-                <span className="block font-bold text-slate-800">Free Pickup</span>
-                <span className="text-[10px] text-slate-400">At your doorstep</span>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900">
+                  Please Log In to View Your Guaranteed Quote
+                </h2>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                  Sign in or create an account to view your instant doorstep valuation for {selectedModel.name}
+                </p>
               </div>
-              <div className="p-2 bg-slate-50 rounded-xl">
-                <span className="block font-bold text-slate-800">100% Data Wipe</span>
-                <span className="text-[10px] text-slate-400">Certificate given</span>
-              </div>
-              <div className="p-2 bg-slate-50 rounded-xl">
-                <span className="block font-bold text-slate-800">Instant Cash</span>
-                <span className="text-[10px] text-slate-400">Zero wait time</span>
-              </div>
-            </div>
-
-            <div className="pt-2 flex flex-col gap-2.5">
               <button
-                onClick={handleProceedToPickup}
-                className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm shadow-emerald-sm hover:shadow-emerald-glow transition flex items-center justify-center gap-2"
+                onClick={openAuthModal}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-black text-sm shadow-brand-glow transition flex items-center justify-center gap-2"
               >
-                <span>Book Free Doorstep Pickup</span>
+                <span>Log In / Sign Up to View Price</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
-              <button
-                onClick={() => setStep(4)}
-                className="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
-              >
-                Re-adjust Condition Diagnostic
-              </button>
             </div>
-          </div>
+          ) : (
+            <div className="bg-white rounded-3xl border border-rose-200 p-6 sm:p-8 shadow-brand-glow text-center space-y-6 relative overflow-hidden">
+              <div className="w-20 h-24 mx-auto bg-slate-50 rounded-2xl p-2 border border-slate-100 flex items-center justify-center">
+                <img
+                  src={resolveImageUrl(selectedModel.imageUrl, selectedModel.slug)}
+                  alt={selectedModel.name}
+                  className="max-h-full max-w-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/uploads/devices/pixel-7a.png';
+                  }}
+                />
+              </div>
+
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200 mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-rose-600" /> Guaranteed Doorstep Buyback Offer
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                  {selectedModel.name} ({selectedVariant?.capacity})
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Condition evaluated with instant doorstep verification
+                </p>
+              </div>
+
+              {/* Big Price Tag */}
+              <div className="py-5 px-6 rounded-3xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white shadow-brand-glow">
+                <span className="text-xs uppercase tracking-widest font-extrabold text-rose-100">
+                  Calculated Valuation
+                </span>
+                <div className="text-4xl sm:text-5xl font-black tracking-tight mt-1">
+                  ₹{calculatedQuote.toLocaleString('en-IN')}
+                </div>
+                <p className="text-[11px] text-rose-100 mt-2">
+                  ⚡ Direct Bank Transfer or UPI upon pickup
+                </p>
+              </div>
+
+              {/* Guarantee points */}
+              <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 pt-2 border-t border-slate-100">
+                <div className="p-2 bg-slate-50 rounded-xl">
+                  <span className="block font-bold text-slate-800">Free Pickup</span>
+                  <span className="text-[10px] text-slate-400">At your doorstep</span>
+                </div>
+                <div className="p-2 bg-slate-50 rounded-xl">
+                  <span className="block font-bold text-slate-800">100% Data Wipe</span>
+                  <span className="text-[10px] text-slate-400">Certificate given</span>
+                </div>
+                <div className="p-2 bg-slate-50 rounded-xl">
+                  <span className="block font-bold text-slate-800">Instant Cash</span>
+                  <span className="text-[10px] text-slate-400">Zero wait time</span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col gap-2.5">
+                <button
+                  onClick={handleProceedToPickup}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-black text-sm shadow-brand-glow transition flex items-center justify-center gap-2"
+                >
+                  <span>Book Free Doorstep Pickup</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => setStep(4)}
+                  className="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+                >
+                  Re-adjust Condition Diagnostic
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
