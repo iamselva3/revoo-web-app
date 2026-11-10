@@ -9,6 +9,11 @@ export const MobileNav: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Hide bottom navigation during sell evaluation flow to maintain full focus like the mobile app
+  if (location.pathname === '/sell') {
+    return null;
+  }
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 shadow-2xl safe-area-bottom">
       <div className="grid grid-cols-5 gap-1">

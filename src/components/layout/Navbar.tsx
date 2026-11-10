@@ -32,26 +32,14 @@ export const Navbar: React.FC = () => {
           {/* Logo & City Chip */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-purple-600 to-pink-500 p-0.5 shadow-md group-hover:shadow-lg transition">
-                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center overflow-hidden">
-                  <img
-                    src="/genie_logo.png"
-                    alt="Genie Logo"
-                    className="w-8 h-8 object-contain drop-shadow"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/revoo_logo.png';
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-purple-600 to-pink-500 bg-clip-text text-transparent group-hover:opacity-90 transition">
-                  Genie
-                </span>
-                <span className="text-[9px] uppercase tracking-widest font-extrabold text-slate-400 -mt-1">
-                  Smartphone Buyback
-                </span>
-              </div>
+              <img
+                src="/genie_logo_light.png"
+                alt="Genie"
+                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 animate-genie-logo"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/genie_logo_transparent.png';
+                }}
+              />
             </Link>
 
             {/* Service Location Pill (Desktop & Tablet) */}
@@ -78,20 +66,22 @@ export const Navbar: React.FC = () => {
               </span>
             </Link>
 
-            <Link
-              to="/buy"
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                isActive('/buy')
-                  ? 'bg-emerald-600 text-white shadow-emerald-sm'
-                  : 'text-slate-700 hover:text-emerald-700 hover:bg-white/80'
-              }`}
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Buy Certified</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase">
-                1-Yr War.
-              </span>
-            </Link>
+            {!isActive('/sell') && (
+              <Link
+                to="/buy"
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  isActive('/buy')
+                    ? 'bg-emerald-600 text-white shadow-emerald-sm'
+                    : 'text-slate-700 hover:text-emerald-700 hover:bg-white/80'
+                }`}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>Buy Certified</span>
+                <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase border border-rose-200">
+                  1-Yr War.
+                </span>
+              </Link>
+            )}
 
             <Link
               to="/track"
@@ -108,19 +98,21 @@ export const Navbar: React.FC = () => {
 
           {/* Actions: Cart & Profile / Login */}
           <div className="flex items-center gap-2.5">
-            {/* Cart Button */}
-            <Link
-              to="/buy#cart"
-              className="relative p-2.5 rounded-2xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 transition"
-              aria-label="Shopping Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {totalCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs animate-bounce">
-                  {totalCount}
-                </span>
-              )}
-            </Link>
+            {/* Cart Button (Hidden during evaluation / sell flow) */}
+            {!isActive('/sell') && (
+              <Link
+                to="/buy#cart"
+                className="relative p-2.5 rounded-2xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 transition"
+                aria-label="Shopping Cart"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {totalCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs animate-bounce">
+                    {totalCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Auth Button or User Menu */}
             {user ? (
@@ -133,7 +125,7 @@ export const Navbar: React.FC = () => {
                     {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
                   </div>
                   <span className="text-xs font-bold text-slate-800 max-w-[100px] truncate hidden sm:block">
-                    {user.fullName || user.phone}
+                    {user.fullName || 'My Account'}
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                 </button>
@@ -142,7 +134,7 @@ export const Navbar: React.FC = () => {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 z-50 animate-slide-up">
                     <div className="p-2.5 border-b border-slate-100">
                       <p className="text-xs font-bold text-slate-900 truncate">
-                        {user.fullName || 'Genie Customer'}
+                        {user.fullName || 'My Account'}
                       </p>
                       <p className="text-[11px] text-slate-500 font-mono mt-0.5">
                         +91 {user.phone}
@@ -227,19 +219,21 @@ export const Navbar: React.FC = () => {
             </span>
           </Link>
 
-          <Link
-            to="/buy"
-            onClick={() => setIsMobileDrawerOpen(false)}
-            className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-200"
-          >
-            <div className="flex items-center gap-3">
-              <ShoppingBag className="w-5 h-5 text-slate-700" />
-              <span>Buy Certified Phones</span>
-            </div>
-            <span className="text-[11px] bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">
-              Warranty
-            </span>
-          </Link>
+          {!isActive('/sell') && (
+            <Link
+              to="/buy"
+              onClick={() => setIsMobileDrawerOpen(false)}
+              className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-200"
+            >
+              <div className="flex items-center gap-3">
+                <ShoppingBag className="w-5 h-5 text-slate-700" />
+                <span>Buy Certified Phones</span>
+              </div>
+              <span className="text-[11px] bg-rose-100 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full font-bold">
+                Warranty
+              </span>
+            </Link>
+          )}
 
           <Link
             to="/track"

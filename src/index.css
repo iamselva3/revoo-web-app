@@ -34,3 +34,28 @@
   padding-bottom: env(safe-area-inset-bottom, 8px);
 }
 
+/* Animated Genie Brand Logo matching mobile app splash & identity */
+@keyframes genieFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3.5px) rotate(1deg);
+  }
+}
+
+@keyframes genieGlow {
+  0%, 100% {
+    filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.25)) drop-shadow(0 0 2px rgba(236, 72, 153, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 4px 10px rgba(245, 158, 11, 0.5)) drop-shadow(0 0 10px rgba(236, 72, 153, 0.6));
+  }
+}
+
+.animate-genie-logo {
+  animation: genieFloat 3.2s ease-in-out infinite, genieGlow 2.8s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+
