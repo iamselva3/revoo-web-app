@@ -671,9 +671,6 @@ export const SellDevicePage: React.FC = () => {
                         <h4 className="font-extrabold text-base text-slate-900 group-hover:text-rose-600 transition">
                           {v.capacity}
                         </h4>
-                        <span className="text-xs font-semibold text-slate-400">
-                          RAM & Storage Configuration
-                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

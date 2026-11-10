@@ -176,26 +176,62 @@ export const TrackOrderPage: React.FC = () => {
           </div>
 
           {/* Device & Valuation summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
-            <div>
-              <span className="text-slate-400 font-medium">Device</span>
-              <p className="font-bold text-slate-900 mt-0.5">
-                {selectedRequest.device?.modelName} ({selectedRequest.device?.variant})
-              </p>
-            </div>
-            <div>
-              <span className="text-slate-400 font-medium">Scheduled Slot</span>
-              <p className="font-bold text-slate-900 mt-0.5">
-                {selectedRequest.scheduledPickupDate} • {selectedRequest.preferredTimeWindow?.split(' ')[0]}
-              </p>
-            </div>
-            <div>
-              <span className="text-slate-400 font-medium">Expected Payout</span>
-              <p className="font-black text-rose-600 text-sm mt-0.5">
-                ₹{selectedRequest.indicativeValuation?.toLocaleString('en-IN')}
-              </p>
-            </div>
-          </div>
+          {(() => {
+            const modelName =
+              selectedRequest.device?.modelName ||
+              (selectedRequest as any).deviceDetails?.modelName ||
+              'Smartphone';
+            const variant =
+              selectedRequest.device?.variant ||
+              (selectedRequest as any).deviceDetails?.storageCapacity ||
+              '';
+            const scheduledDate =
+              selectedRequest.scheduledPickupDate ||
+              (selectedRequest as any).pickupAddress?.scheduledDate ||
+              (selectedRequest as any).assignedCollector?.scheduledDate ||
+              (selectedRequest.createdAt
+                ? new Date(selectedRequest.createdAt).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : 'Tomorrow');
+            const timeWindow =
+              selectedRequest.preferredTimeWindow ||
+              (selectedRequest as any).pickupAddress?.preferredSlot ||
+              (selectedRequest as any).assignedCollector?.timeSlot ||
+              '10:00 AM - 1:00 PM';
+            const payoutAmount =
+              selectedRequest.indicativeValuation ||
+              (selectedRequest as any).indicativeEstimate?.estimatedAmount ||
+              (selectedRequest as any).finalOfferAmount ||
+              0;
+
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                <div>
+                  <span className="text-slate-400 font-medium">Device</span>
+                  <p className="font-bold text-slate-900 mt-0.5">
+                    {modelName}
+                    {variant ? ` (${variant})` : ''}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium">Scheduled Slot</span>
+                  <p className="font-bold text-slate-900 mt-0.5">
+                    {scheduledDate}
+                    {timeWindow ? ` • ${timeWindow}` : ''}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-medium">Expected Payout</span>
+                  <p className="font-black text-rose-600 text-sm mt-0.5">
+                    ₹{payoutAmount.toLocaleString('en-IN')}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Visual Step Timeline */}
           <div className="space-y-4">

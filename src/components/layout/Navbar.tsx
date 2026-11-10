@@ -56,9 +56,6 @@ export const Navbar: React.FC = () => {
             >
               <Smartphone className="w-4 h-4" />
               <span>Sell Used Phone</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-black uppercase">
-                60s
-              </span>
             </Link>
 
             <Link
@@ -98,9 +95,19 @@ export const Navbar: React.FC = () => {
                       <p className="text-xs font-bold text-slate-900 truncate">
                         {user.fullName || 'My Account'}
                       </p>
-                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                        +91 {user.phone}
-                      </p>
+                      {user.phone ? (
+                        <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                          {user.phone.startsWith('+91') ? user.phone : `+91 ${user.phone}`}
+                        </p>
+                      ) : user.email ? (
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5" title={user.email}>
+                          {user.email}
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+                          Verified Member
+                        </p>
+                      )}
                     </div>
 
                     <Link
