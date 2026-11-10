@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { PageLoadingProvider } from './context/PageLoadingContext';
 import { Layout } from './components/layout/Layout';
 import { ScrollToTop } from './components/common/ScrollToTop';
 
@@ -30,19 +31,21 @@ export const App: React.FC = () => {
       <AuthProvider>
         <CartProvider>
           <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<HomePage />} />
-                <Route path="sell" element={<SellDevicePage />} />
-                <Route path="pickup" element={<DoorstepPickupPage />} />
-                <Route path="buy" element={<BuyStorePage />} />
-                <Route path="buy/:id" element={<ProductDetailPage />} />
-                <Route path="track" element={<TrackOrderPage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Route>
-            </Routes>
+            <PageLoadingProvider>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="sell" element={<SellDevicePage />} />
+                  <Route path="pickup" element={<DoorstepPickupPage />} />
+                  <Route path="buy" element={<BuyStorePage />} />
+                  <Route path="buy/:id" element={<ProductDetailPage />} />
+                  <Route path="track" element={<TrackOrderPage />} />
+                  <Route path="profile" element={<ProfilePage />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Route>
+              </Routes>
+            </PageLoadingProvider>
           </BrowserRouter>
         </CartProvider>
       </AuthProvider>

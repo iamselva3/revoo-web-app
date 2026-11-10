@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { catalogueApi } from '../../api/catalogue';
 import { resolveImageUrl } from '../../api/client';
 import { Brand, Banner, CustomerReview } from '../../types';
+import { usePageLoading } from '../../context/PageLoadingContext';
+import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import {
   Smartphone,
   Laptop,
@@ -25,11 +27,13 @@ export const HomePage: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const { setIsPageLoading } = usePageLoading();
   const [reviews, setReviews] = useState<CustomerReview[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'phone' | 'laptop' | 'tablet' | 'tv'>('all');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsPageLoading(true);
     const fetchData = async () => {
       try {
         const [bannerData, brandData, reviewData] = await Promise.all([
@@ -45,11 +49,13 @@ export const HomePage: React.FC = () => {
         console.error('Error loading home data:', err);
       } finally {
         setIsLoading(false);
+        setIsPageLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+    return () => setIsPageLoading(false);
+  }, [setIsPageLoading]);
 
   // Banner auto-play
   useEffect(() => {
@@ -59,6 +65,16 @@ export const HomePage: React.FC = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, [banners.length]);
+
+  if (isLoading) {
+    return (
+      <PageLoadingSkeleton
+        title="Loading Genie Buyback Hub..."
+        subtitle="Retrieving verified buyback prices, partner offers, and certified electronics"
+        type="home"
+      />
+    );
+  }
 
   return (
     <div className="space-y-12 sm:space-y-16 pb-16">

@@ -4,6 +4,8 @@ import { catalogueApi } from '../../api/catalogue';
 import { resolveImageUrl } from '../../api/client';
 import { RefurbishedProduct } from '../../types';
 import { useCart } from '../../context/CartContext';
+import { usePageLoading } from '../../context/PageLoadingContext';
+import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import {
   ShoppingBag,
   Search,
@@ -22,6 +24,7 @@ export const BuyStorePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
 
+  const { setIsPageLoading } = usePageLoading();
   const [products, setProducts] = useState<RefurbishedProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,11 +33,18 @@ export const BuyStorePage: React.FC = () => {
   const [addedToast, setAddedToast] = useState<string | null>(null);
 
   useEffect(() => {
+    setIsPageLoading(true);
     catalogueApi.getRefurbishedProducts().then((data) => {
       setProducts(data);
       setIsLoading(false);
+      setIsPageLoading(false);
+    }).catch(() => {
+      setIsLoading(false);
+      setIsPageLoading(false);
     });
-  }, []);
+
+    return () => setIsPageLoading(false);
+  }, [setIsPageLoading]);
 
   const brands = ['ALL', ...Array.from(new Set(products.map((p) => p.brand).filter(Boolean)))];
 
@@ -117,7 +127,11 @@ export const BuyStorePage: React.FC = () => {
 
       {/* Product Grid */}
       {isLoading ? (
-        <div className="py-24 text-center text-xs text-slate-400">Loading certified store...</div>
+        <PageLoadingSkeleton
+          title="Loading Certified Devices..."
+          subtitle="Fetching refurbished smartphones inspected by our 32-point diagnostic process"
+          type="store"
+        />
       ) : filteredProducts.length === 0 ? (
         <div className="py-20 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-3">
           <p className="text-sm font-bold text-slate-700">No certified devices found.</p>

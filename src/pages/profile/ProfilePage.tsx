@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { requestApi } from '../../api/requests';
+import { usePageLoading } from '../../context/PageLoadingContext';
+import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import {
   User,
   Smartphone,
@@ -17,22 +19,30 @@ import {
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, openAuthModal } = useAuth();
+  const { setIsPageLoading } = usePageLoading();
   const [requests, setRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (user) {
+      setIsPageLoading(true);
       requestApi
         .getMyRequests()
         .then((data) => {
           setRequests(data || []);
         })
         .catch(() => setRequests([]))
-        .finally(() => setIsLoading(false));
+        .finally(() => {
+          setIsLoading(false);
+          setIsPageLoading(false);
+        });
     } else {
       setIsLoading(false);
+      setIsPageLoading(false);
     }
-  }, [user]);
+
+    return () => setIsPageLoading(false);
+  }, [user, setIsPageLoading]);
 
   if (!user) {
     return (
@@ -97,7 +107,11 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="py-12 text-center text-xs text-slate-400">Loading requests...</div>
+          <PageLoadingSkeleton
+            title="Loading Orders & Pickup Requests..."
+            subtitle="Fetching your order history and scheduled doorstep inspections"
+            type="generic"
+          />
         ) : requests.length === 0 ? (
           <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
             <p className="text-xs font-bold text-slate-700">No active pickup requests yet.</p>

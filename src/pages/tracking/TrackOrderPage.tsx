@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { requestApi } from '../../api/requests';
 import { useAuth } from '../../context/AuthContext';
 import { BuybackRequest } from '../../types';
+import { usePageLoading } from '../../context/PageLoadingContext';
+import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import {
   Truck,
   Search,
@@ -147,7 +149,13 @@ export const TrackOrderPage: React.FC = () => {
         </div>
       )}
 
-      {selectedRequest ? (
+      {isLoading ? (
+        <PageLoadingSkeleton
+          title="Looking up Request Status..."
+          subtitle="Fetching verified status and doorstep pickup appointment details"
+          type="generic"
+        />
+      ) : selectedRequest ? (
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-card space-y-8 animate-slide-up">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">

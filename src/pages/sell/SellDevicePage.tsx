@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { catalogueApi } from '../../api/catalogue';
 import { resolveImageUrl } from '../../api/client';
 import { Brand, SmartphoneModel, DeviceVariant } from '../../types';
+import { usePageLoading } from '../../context/PageLoadingContext';
+import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import confetti from 'canvas-confetti';
 import {
   Smartphone,
@@ -125,6 +127,7 @@ export const SellDevicePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, openAuthModal } = useAuth();
+  const { setIsPageLoading } = usePageLoading();
 
   // Step flow: 1=Brand, 2=Model, 3=Variant, 4=Condition (with 4 sub-steps like mobile app), 5=Quote
   const [step, setStep] = useState<number>(1);
@@ -190,9 +193,11 @@ export const SellDevicePage: React.FC = () => {
 
   // 1. Initial Load of Brands
   useEffect(() => {
+    setIsPageLoading(true);
     catalogueApi.getBrands().then((data) => {
       setBrands(data);
       setIsLoadingBrands(false);
+      setIsPageLoading(false);
 
       const brandParam = searchParams.get('brand');
       if (brandParam) {
@@ -203,13 +208,19 @@ export const SellDevicePage: React.FC = () => {
           handleSelectBrand(found);
         }
       }
+    }).catch(() => {
+      setIsLoadingBrands(false);
+      setIsPageLoading(false);
     });
-  }, [searchParams]);
+
+    return () => setIsPageLoading(false);
+  }, [searchParams, setIsPageLoading]);
 
   // Handle Brand Pick
   const handleSelectBrand = async (brand: Brand) => {
     setSelectedBrand(brand);
     setIsLoadingModels(true);
+    setIsPageLoading(true);
     setStep(2);
     try {
       const modelData = await catalogueApi.getModelsByBrand(brand._id);
@@ -218,6 +229,7 @@ export const SellDevicePage: React.FC = () => {
       setModels([]);
     } finally {
       setIsLoadingModels(false);
+      setIsPageLoading(false);
     }
   };
 
@@ -233,6 +245,7 @@ export const SellDevicePage: React.FC = () => {
     setSidePanelCondition(null);
     setSelectedVariant(null);
     setIsLoadingVariants(true);
+    setIsPageLoading(true);
     setStep(3); // Always show Step 3 (Variant / Storage selection)
 
     try {
@@ -267,6 +280,7 @@ export const SellDevicePage: React.FC = () => {
       setAvailableVariants(getFallbackVariantsForDevice(model.name));
     } finally {
       setIsLoadingVariants(false);
+      setIsPageLoading(false);
     }
   };
 
@@ -481,10 +495,11 @@ export const SellDevicePage: React.FC = () => {
           </div>
 
           {isLoadingBrands ? (
-            <div className="py-20 text-center flex flex-col items-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
-              <span className="text-xs font-medium">Loading brands...</span>
-            </div>
+            <PageLoadingSkeleton
+              title="Loading Smartphone Brands..."
+              subtitle="Fetching verified manufacturers eligible for instant buyback"
+              type="brands"
+            />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {brands.map((brand, idx) => (
@@ -544,10 +559,11 @@ export const SellDevicePage: React.FC = () => {
           </div>
 
           {isLoadingModels ? (
-            <div className="py-20 text-center flex flex-col items-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
-              <span className="text-xs font-medium">Fetching models...</span>
-            </div>
+            <PageLoadingSkeleton
+              title={`Loading ${selectedBrand?.name || 'Device'} Models...`}
+              subtitle="Fetching eligible smartphone models with verified buyback values"
+              type="models"
+            />
           ) : filteredModels.length === 0 ? (
             <div className="py-16 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200">
               No models found matching "{searchModelQuery}".
@@ -634,10 +650,11 @@ export const SellDevicePage: React.FC = () => {
           </div>
 
           {isLoadingVariants ? (
-            <div className="py-12 text-center flex flex-col items-center gap-3 text-slate-400">
-              <Loader2 className="w-7 h-7 text-rose-600 animate-spin" />
-              <span className="text-xs font-medium">Loading variants...</span>
-            </div>
+            <PageLoadingSkeleton
+              title="Loading Device Configurations..."
+              subtitle="Retrieving RAM & ROM capacities for valuation"
+              type="generic"
+            />
           ) : (
             <div className="space-y-3">
               {availableVariants.map((v) => {

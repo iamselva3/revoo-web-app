@@ -4,6 +4,8 @@ import { catalogueApi } from '../../api/catalogue';
 import { resolveImageUrl } from '../../api/client';
 import { RefurbishedProduct } from '../../types';
 import { useCart } from '../../context/CartContext';
+import { usePageLoading } from '../../context/PageLoadingContext';
+import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import {
   ShieldCheck,
   BatteryMedium,
@@ -23,6 +25,7 @@ export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { setIsPageLoading } = usePageLoading();
 
   const [product, setProduct] = useState<RefurbishedProduct | null>(null);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number>(0);
@@ -31,17 +34,30 @@ export const ProductDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
+    setIsPageLoading(true);
     catalogueApi.getRefurbishedProducts().then((list) => {
       const match = list.find((p) => p._id === id);
       if (match) {
         setProduct(match);
       }
       setIsLoading(false);
+      setIsPageLoading(false);
+    }).catch(() => {
+      setIsLoading(false);
+      setIsPageLoading(false);
     });
-  }, [id]);
+
+    return () => setIsPageLoading(false);
+  }, [id, setIsPageLoading]);
 
   if (isLoading) {
-    return <div className="py-24 text-center text-xs text-slate-400">Loading device details...</div>;
+    return (
+      <PageLoadingSkeleton
+        title="Loading Device Specifications..."
+        subtitle="Retrieving diagnostic score, battery health, and warranty coverage"
+        type="details"
+      />
+    );
   }
 
   if (!product) {
