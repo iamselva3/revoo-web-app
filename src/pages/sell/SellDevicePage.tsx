@@ -259,20 +259,7 @@ export const SellDevicePage: React.FC = () => {
           capacity: normalizeCapacityWithRam(v.capacity, model.name),
           priceModifier: v.priceModifier || 0,
         }));
-
-        // Merge DB variants and add any missing standard higher capacities (e.g. 512GB, 1TB, 2TB)
-        const existingCapacities = new Set(
-          dbVariants.map((v) => v.capacity.replace(/\s+/g, '').toLowerCase())
-        );
-
-        const merged = [...dbVariants];
-        for (const fb of fallback) {
-          const norm = fb.capacity.replace(/\s+/g, '').toLowerCase();
-          if (!existingCapacities.has(norm)) {
-            merged.push(fb);
-          }
-        }
-        setAvailableVariants(merged);
+        setAvailableVariants(dbVariants);
       } else {
         setAvailableVariants(fallback);
       }
