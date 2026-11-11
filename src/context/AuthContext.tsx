@@ -1,6 +1,17 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { CustomerUser } from '../types';
 import { authApi } from '../api/auth';
+import {
+  SESSION_ENDED_EVENT,
+  TOKEN_KEY,
+  USER_KEY,
+  apiClient,
+  clearStoredSession,
+  getAccessToken,
+  getRefreshToken,
+  isJwt,
+  storeSession,
+} from '../api/client';
 
 interface AuthContextType {
   user: CustomerUser | null;
@@ -17,92 +28,106 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const isValidJwt = (token: string | null | undefined): boolean => {
-  if (!token || typeof token !== 'string') return false;
-  const trimmed = token.trim();
-  if (trimmed === '' || trimmed === 'undefined' || trimmed === 'null') return false;
-  // A valid JWT has 3 parts: header.payload.signature
-  return trimmed.split('.').length === 3;
+const readCachedUser = (): CustomerUser | null => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 };
 
+const cacheUser = (user: CustomerUser) => {
+  try {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch {
+    // ignore
+  }
+};
+
+/** Signed in = we hold a session that can still be renewed (refresh token) or used (access token). */
+const hasSession = () => isJwt(getAccessToken()) || isJwt(getRefreshToken());
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => {
-    const raw = localStorage.getItem('revoo_customer_token');
-    if (!isValidJwt(raw)) {
-      localStorage.removeItem('revoo_customer_token');
-      localStorage.removeItem('revoo_customer_refresh_token');
-      localStorage.removeItem('revoo_customer_user');
-      return null;
-    }
-    return raw;
-  });
-
-  const [user, setUser] = useState<CustomerUser | null>(() => {
-    const raw = localStorage.getItem('revoo_customer_token');
-    if (!isValidJwt(raw)) return null;
-    const cached = localStorage.getItem('revoo_customer_user');
-    return cached ? JSON.parse(cached) : null;
-  });
-
+  const [token, setToken] = useState<string | null>(() => (hasSession() ? getAccessToken() : null));
+  const [user, setUser] = useState<CustomerUser | null>(() => (hasSession() ? readCachedUser() : null));
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
+  const resetState = useCallback(() => {
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  // Confirm the stored session on load. The API client renews an expired access token
+  // automatically; only a definitive "session ended" from the server signs the customer out.
+  // Network errors or a backend that is still waking up keep the cached profile.
   useEffect(() => {
-    const initAuth = async () => {
-      const storedToken = localStorage.getItem('revoo_customer_token');
-      if (!isValidJwt(storedToken)) {
-        localStorage.removeItem('revoo_customer_token');
-        localStorage.removeItem('revoo_customer_refresh_token');
-        localStorage.removeItem('revoo_customer_user');
-        setUser(null);
-        setToken(null);
+    const init = async () => {
+      if (!hasSession()) {
+        clearStoredSession();
+        resetState();
         setIsLoading(false);
         return;
       }
-
       try {
         const profile = await authApi.getProfile();
         if (profile) {
           setUser(profile);
-          localStorage.setItem('revoo_customer_user', JSON.stringify(profile));
+          cacheUser(profile);
         }
+        setToken(getAccessToken());
       } catch {
-        // Token might be expired or invalid
-        localStorage.removeItem('revoo_customer_token');
-        localStorage.removeItem('revoo_customer_refresh_token');
-        localStorage.removeItem('revoo_customer_user');
-        setUser(null);
-        setToken(null);
+        if (!hasSession()) resetState();
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
+    init();
+  }, [resetState]);
 
-    initAuth();
-  }, []);
+  // Session ended by the server (refresh rejected) → reflect it in the UI
+  useEffect(() => {
+    const onEnded = () => resetState();
+    window.addEventListener(SESSION_ENDED_EVENT, onEnded);
+    return () => window.removeEventListener(SESSION_ENDED_EVENT, onEnded);
+  }, [resetState]);
 
-  const loginWithAuthData = (
-    accessToken: string,
-    refreshToken: string,
-    customerUser: CustomerUser
-  ) => {
-    if (!isValidJwt(accessToken)) {
-      console.error('Invalid token rejected in loginWithAuthData:', accessToken);
+  // Keep every open tab in sync: log in / log out / token renewals in one tab apply to all
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === TOKEN_KEY) {
+        if (!e.newValue) resetState();
+        else setToken(e.newValue);
+      } else if (e.key === USER_KEY) {
+        setUser(e.newValue ? JSON.parse(e.newValue) : null);
+      } else if (e.key === null) {
+        // localStorage.clear() in another tab
+        if (!hasSession()) resetState();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [resetState]);
+
+  const loginWithAuthData = (accessToken: string, refreshToken: string, customerUser: CustomerUser) => {
+    if (!isJwt(accessToken)) {
+      console.error('Invalid token rejected in loginWithAuthData');
       return;
     }
+    storeSession(accessToken, refreshToken);
+    cacheUser(customerUser);
     setToken(accessToken);
     setUser(customerUser);
-    localStorage.setItem('revoo_customer_token', accessToken);
-    localStorage.setItem('revoo_customer_refresh_token', refreshToken || '');
-    localStorage.setItem('revoo_customer_user', JSON.stringify(customerUser));
     setIsAuthModalOpen(false);
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('revoo_customer_token');
-    localStorage.removeItem('revoo_customer_refresh_token');
-    localStorage.removeItem('revoo_customer_user');
+    const refreshToken = getRefreshToken();
+    clearStoredSession();
+    resetState();
+    // End this device's session on the server too (works even if the access token expired)
+    apiClient.post('/auth/customer/logout', { refreshToken }).catch(() => undefined);
   };
 
   return (
@@ -115,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         updateUser: (next: CustomerUser) => {
           setUser(next);
-          localStorage.setItem('revoo_customer_user', JSON.stringify(next));
+          cacheUser(next);
         },
         isAuthModalOpen,
         openAuthModal: () => setIsAuthModalOpen(true),
@@ -132,4 +157,3 @@ export const useAuth = () => {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 };
-
