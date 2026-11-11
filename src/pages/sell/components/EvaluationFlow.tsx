@@ -8,7 +8,7 @@ import {
   EVAL_TABS,
   EvalTabId,
   EvaluationAnswers,
-  FUNCTIONAL_ISSUES,
+  functionalIssuesFor,
   SCREENING_QUESTIONS,
   applicableTabs,
   buildSummary,
@@ -69,7 +69,7 @@ export const EvaluationSummary: React.FC<{
   variant: DeviceVariant;
   answers: EvaluationAnswers;
 }> = ({ brandName, model, variant, answers }) => {
-  const groups = buildSummary(answers);
+  const groups = buildSummary(answers, model.name);
   return (
     <div>
       <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Device evaluation</p>
@@ -296,7 +296,7 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                   <div>
                     <SectionHeading title="Select all issues identified in your phone" subtitle="Skip this if everything works fine." />
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                      {FUNCTIONAL_ISSUES.map((issue) => (
+                      {functionalIssuesFor(model.name).map((issue) => (
                         <OptionCard
                           key={issue.key}
                           multi

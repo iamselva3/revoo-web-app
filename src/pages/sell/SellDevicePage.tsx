@@ -233,7 +233,7 @@ export const SellDevicePage: React.FC = () => {
         imageUrl: model.imageUrl,
         slug: model.slug,
       },
-      conditions: { ...quote.conditions, summary: buildSummary(answers) },
+      conditions: { ...quote.conditions, summary: buildSummary(answers, model.name) },
       indicativeValuation: quote.amount,
       maxPrice: quote.maxPrice,
     };

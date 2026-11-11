@@ -179,6 +179,22 @@ export const FUNCTIONAL_ISSUES: FunctionalIssue[] = [
   { key: 'proximitySensorNotWorking', label: 'Proximity sensor not working', art: 'proximity' },
 ];
 
+/** iPhones report battery health as a percentage; Android phones and other devices don't. */
+export const isIphoneModel = (modelName?: string) => /\biphone\b/i.test(modelName || '');
+
+const BATTERY_LABEL_NON_IPHONE = 'Battery changed or battery problem';
+
+/**
+ * Functional issues worded for the selected device. Same keys (and therefore the same price
+ * deduction) for every device; only the battery label differs.
+ */
+export const functionalIssuesFor = (modelName?: string): FunctionalIssue[] =>
+  isIphoneModel(modelName)
+    ? FUNCTIONAL_ISSUES
+    : FUNCTIONAL_ISSUES.map((issue) =>
+        issue.key === 'batteryHealthBelow83' ? { ...issue, label: BATTERY_LABEL_NON_IPHONE } : issue
+      );
+
 export const ACCESSORIES: Array<{ key: 'hasOriginalCharger' | 'hasOriginalBox'; label: string; hint: string; art: ConditionArtKind }> = [
   { key: 'hasOriginalCharger', label: 'Original charger', hint: 'Brand charger / cable', art: 'charger' },
   { key: 'hasOriginalBox', label: 'Box with same IMEI', hint: 'Original retail box', art: 'box' },
@@ -226,7 +242,7 @@ export interface SummaryGroup {
 const yesNo = (v: boolean | null, q: string) => (v === null ? null : `${v ? 'Yes' : 'No'}, ${q}`);
 
 /** Human-readable answers for the "Device evaluation · Summary" panel. */
-export const buildSummary = (a: EvaluationAnswers): SummaryGroup[] => {
+export const buildSummary = (a: EvaluationAnswers, modelName?: string): SummaryGroup[] => {
   const groups: SummaryGroup[] = [];
 
   const screening = SCREENING_QUESTIONS.map((q) => yesNo(a[q.key], q.question)).filter(Boolean) as string[];
@@ -239,7 +255,7 @@ export const buildSummary = (a: EvaluationAnswers): SummaryGroup[] => {
     if (items.length) groups.push({ title: group, items });
   }
 
-  const faults = FUNCTIONAL_ISSUES.filter((f) => a.hardwareFaults[f.key]).map((f) => f.label);
+  const faults = functionalIssuesFor(modelName).filter((f) => a.hardwareFaults[f.key]).map((f) => f.label);
   if (faults.length) groups.push({ title: 'Functional issues', items: faults });
 
   const accessories = ACCESSORIES.filter((x) => a[x.key]).map((x) => x.label);
