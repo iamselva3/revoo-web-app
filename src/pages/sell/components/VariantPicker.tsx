@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BadgeIndianRupee, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { DeviceVariant, SmartphoneModel } from '../../../types';
 import { DeviceImage, formatCapacity, formatINR, fullDeviceName, useAnimatedNumber } from './shared';
 
@@ -84,22 +84,6 @@ export const VariantPicker: React.FC<VariantPickerProps> = ({
 
           <p className="mt-4 text-sm text-slate-500 dark:text-neutral-400">Free pickup · Paid before our agent leaves</p>
         </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {[
-          { icon: Truck, title: 'Free doorstep pickup', text: 'At a time that suits you' },
-          { icon: BadgeIndianRupee, title: 'Instant payment', text: 'UPI, bank transfer or cash' },
-          { icon: ShieldCheck, title: 'Safe & secure', text: 'Certified data wipe' },
-        ].map(({ icon: Icon, title: t, text }) => (
-          <div key={t} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950">
-            <Icon className="h-5 w-5 shrink-0 text-amber-500" />
-            <div>
-              <p className="text-sm font-semibold text-ink dark:text-white">{t}</p>
-              <p className="text-xs text-slate-500 dark:text-neutral-400">{text}</p>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );

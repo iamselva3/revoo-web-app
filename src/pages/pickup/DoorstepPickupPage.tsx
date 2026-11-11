@@ -9,7 +9,6 @@ import {
   Truck,
   MapPin,
   Calendar,
-  CreditCard,
   CheckCircle2,
   ArrowRight,
   Loader2,
@@ -48,12 +47,6 @@ export const DoorstepPickupPage: React.FC = () => {
     return tomorrow.toISOString().split('T')[0];
   });
   const [timeWindow, setTimeWindow] = useState<string>('Morning (10:00 AM - 01:00 PM)');
-
-  // Payment method
-  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'BANK_TRANSFER' | 'INSTANT_CASH'>('UPI');
-  const [upiId, setUpiId] = useState<string>('');
-  const [accountNumber, setAccountNumber] = useState<string>('');
-  const [ifscCode, setIfscCode] = useState<string>('');
 
   // Submission
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -155,12 +148,7 @@ export const DoorstepPickupPage: React.FC = () => {
         scheduledPickupDate: pickupDate,
         preferredTimeWindow: timeWindow,
         paymentDetails: {
-          paymentMethod,
-          upiId: paymentMethod === 'UPI' ? upiId : undefined,
-          bankAccount:
-            paymentMethod === 'BANK_TRANSFER'
-              ? { accountNumber, ifscCode, bankName: 'Verified Account' }
-              : undefined,
+          paymentMethod: 'INSTANT_CASH',
         },
       };
 
@@ -529,72 +517,6 @@ export const DoorstepPickupPage: React.FC = () => {
               </select>
             </div>
           </div>
-        </div>
-
-        {/* Payment preference */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-card space-y-4">
-          <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-amber-500" /> 4. Payout Method (On Device Handover)
-          </h2>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'UPI', label: 'Instant UPI', sub: 'GPay / PhonePe / Paytm' },
-              { id: 'BANK_TRANSFER', label: 'Bank Account', sub: 'Direct IMPS' },
-              { id: 'INSTANT_CASH', label: 'Doorstep Cash', sub: 'Hand-to-Hand' },
-            ].map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPaymentMethod(p.id as any)}
-                className={`p-3 rounded-2xl border text-center transition ${
-                  paymentMethod === p.id
-                    ? 'bg-ink border-2 border-ink font-bold text-white shadow-soft dark:bg-amber-400 dark:border-amber-400 dark:text-black'
-                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <p className="text-xs font-bold">{p.label}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">{p.sub}</p>
-              </button>
-            ))}
-          </div>
-
-          {paymentMethod === 'UPI' && (
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">UPI ID</label>
-              <input
-                type="text"
-                placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-              />
-            </div>
-          )}
-
-          {paymentMethod === 'BANK_TRANSFER' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Account Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 501002345678"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono font-bold text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">IFSC Code</label>
-                <input
-                  type="text"
-                  placeholder="e.g. HDFC0001234"
-                  value={ifscCode}
-                  onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono font-bold text-slate-900"
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Submit Booking */}

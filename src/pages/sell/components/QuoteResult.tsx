@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, BadgeIndianRupee, ChevronDown, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowRight, ChevronDown, RotateCcw } from 'lucide-react';
 import { DeviceVariant, SmartphoneModel } from '../../../types';
 import { DeviceImage, formatCapacity, formatINR, fullDeviceName, useAnimatedNumber } from './shared';
 
@@ -108,22 +108,6 @@ export const QuoteResult: React.FC<QuoteResultProps> = ({
             )}
           </div>
         )}
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {[
-          { icon: Truck, title: 'Free doorstep pickup', text: 'Pick a date and time slot' },
-          { icon: BadgeIndianRupee, title: 'Paid on the spot', text: 'Before our agent leaves' },
-          { icon: ShieldCheck, title: 'Data wiped safely', text: 'Certified erasure' },
-        ].map(({ icon: Icon, title, text }) => (
-          <div key={title} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950">
-            <Icon className="h-5 w-5 shrink-0 text-amber-500" />
-            <div>
-              <p className="text-sm font-semibold text-ink dark:text-white">{title}</p>
-              <p className="text-xs text-slate-500 dark:text-neutral-400">{text}</p>
-            </div>
-          </div>
-        ))}
       </div>
 
       <p className="mt-4 text-center text-xs text-slate-400 dark:text-neutral-500">
