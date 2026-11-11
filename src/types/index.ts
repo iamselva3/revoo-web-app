@@ -114,24 +114,62 @@ export interface Address {
   pincode: string;
 }
 
+/** Address as stored on a pickup request (website and app bookings use slightly different keys). */
+export interface RequestAddress {
+  street?: string;
+  area?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  landmark?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  preferredSlot?: string;
+}
+
+export interface PayoutDetails {
+  method: 'UPI' | 'BANK_TRANSFER' | 'INSTANT_CASH';
+  upiId?: string;
+  /** Masked by the API, e.g. "•••• 6789" */
+  accountNumber?: string;
+  ifscCode?: string;
+  bankName?: string;
+}
+
+export interface RequestTimelineEntry {
+  status: string;
+  timestamp: string;
+  note?: string;
+  updatedBy?: string;
+}
+
 export interface BuybackRequest {
   _id: string;
   requestNumber: string;
   customer: {
     fullName: string;
     phone: string;
+    email?: string;
   };
   device: {
     brand: string;
     modelName: string;
     variant: string;
+    imageUrl?: string;
+    slug?: string;
   };
-  pickupAddress: Address;
+  pickupAddress: RequestAddress;
   scheduledPickupDate: string;
   preferredTimeWindow: string;
   indicativeValuation: number;
   finalOfferAmount?: number;
-  status: 'PENDING_ASSIGNMENT' | 'COLLECTION_ASSIGNED' | 'OUT_FOR_PICKUP' | 'COLLECTED' | 'UNDER_INSPECTION' | 'FINAL_OFFER_MADE' | 'OFFER_ACCEPTED' | 'OFFER_REJECTED' | 'PAID' | 'COMPLETED' | 'CANCELLED';
+  payoutDetails?: PayoutDetails;
+  declaredCondition?: { summary?: Array<{ title: string; items: string[] }>; [key: string]: any };
+  timeline?: RequestTimelineEntry[];
+  assignedCollector?: { staffName?: string; scheduledDate?: string; timeSlot?: string };
+  /** Backend RequestStatus value, e.g. SUBMITTED, ASSIGNED_FOR_COLLECTION, PAYMENT_COMPLETED */
+  status: string;
   createdAt: string;
+  updatedAt?: string;
 }
 

@@ -56,7 +56,8 @@ export const DeviceImage: React.FC<{ model: Pick<SmartphoneModel, 'imageUrl' | '
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [model.imageUrl, model.slug]);
 
-  if (failed) {
+  // No image and no slug: show the neutral illustration rather than an unrelated stock phone
+  if (failed || (!model.imageUrl && !model.slug)) {
     return <ConditionArt kind="back-clean" className={className} />;
   }
   return (

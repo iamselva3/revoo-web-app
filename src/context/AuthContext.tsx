@@ -8,6 +8,8 @@ interface AuthContextType {
   isLoading: boolean;
   loginWithAuthData: (accessToken: string, refreshToken: string, user: CustomerUser) => void;
   logout: () => void;
+  /** Replace the cached profile after an edit (keeps the navbar and forms in sync). */
+  updateUser: (user: CustomerUser) => void;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -111,6 +113,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         loginWithAuthData,
         logout,
+        updateUser: (next: CustomerUser) => {
+          setUser(next);
+          localStorage.setItem('revoo_customer_user', JSON.stringify(next));
+        },
         isAuthModalOpen,
         openAuthModal: () => setIsAuthModalOpen(true),
         closeAuthModal: () => setIsAuthModalOpen(false),

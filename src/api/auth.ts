@@ -53,6 +53,12 @@ export const authApi = {
     return extractAuthData(res.data?.data);
   },
 
+  /** Name and mobile number are editable; email is the login identity and can't be changed. */
+  updateProfile: async (payload: { fullName?: string; phone?: string }): Promise<CustomerUser> => {
+    const res = await apiClient.put('/auth/customer/profile', payload);
+    return res.data?.data;
+  },
+
   getProfile: async (): Promise<CustomerUser> => {
     const res = await apiClient.get('/auth/customer/profile');
     return res.data?.data?.user || res.data?.data;
