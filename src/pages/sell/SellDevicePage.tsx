@@ -305,10 +305,10 @@ export const SellDevicePage: React.FC = () => {
         (isLoadingModel && !model ? (
           <div className="surface grid grid-cols-1 gap-8 p-6 sm:p-8 md:grid-cols-[5fr_7fr]" aria-busy="true">
             <div className="h-64 animate-pulse rounded-3xl bg-slate-100 dark:bg-neutral-900 md:h-80" />
-            <div className="space-y-4 py-4">
+            <div className="flex flex-col items-center justify-center space-y-4 py-4 sm:items-start">
               <div className="h-7 w-3/4 animate-pulse rounded-lg bg-slate-100 dark:bg-neutral-900" />
               <div className="h-12 w-1/2 animate-pulse rounded-lg bg-slate-100 dark:bg-neutral-900" />
-              <div className="flex gap-3">
+              <div className="flex justify-center gap-3 sm:justify-start">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="h-12 w-24 animate-pulse rounded-2xl bg-slate-100 dark:bg-neutral-900" />
                 ))}

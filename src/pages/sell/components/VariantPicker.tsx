@@ -36,24 +36,24 @@ export const VariantPicker: React.FC<VariantPickerProps> = ({
           <DeviceImage model={model} className="h-48 w-full sm:h-64 md:h-72" />
         </div>
 
-        <div className="flex flex-col justify-center">
-          <h1 className="text-xl font-semibold leading-snug text-ink dark:text-white sm:text-2xl">{title}</h1>
+        <div className="flex flex-col justify-center text-center sm:text-left">
+          <h1 className="text-xl font-bold leading-snug text-ink dark:text-white sm:text-2xl">{title}</h1>
 
           <p className="mt-4 text-sm text-slate-500 dark:text-neutral-400">Get up to</p>
-          <p className="mt-0.5 text-4xl font-semibold tracking-tight text-ink dark:text-white sm:text-5xl" aria-live="polite">
+          <p className="mt-0.5 text-4xl font-extrabold tracking-tight text-ink dark:text-white sm:text-5xl" aria-live="polite">
             {isLoading ? <span className="inline-block h-12 w-56 animate-pulse rounded-xl bg-slate-100 dark:bg-neutral-900" /> : formatINR(animated)}
           </p>
 
           <div className="mt-7">
             <p className="text-base font-semibold text-ink dark:text-white">Select your variant</p>
             {isLoading ? (
-              <div className="mt-3 flex flex-wrap gap-3">
+              <div className="mt-3 flex flex-wrap justify-center gap-3 sm:justify-start">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <span key={i} className="h-12 w-28 animate-pulse rounded-2xl bg-slate-100 dark:bg-neutral-900" />
                 ))}
               </div>
             ) : (
-              <div className="mt-3 flex flex-wrap gap-2.5 sm:gap-3" role="radiogroup" aria-label="Variant">
+              <div className="mt-3 flex flex-wrap justify-center gap-2.5 sm:justify-start sm:gap-3" role="radiogroup" aria-label="Variant">
                 {variants.map((v) => {
                   const isSelected = selected?._id ? selected._id === v._id : selected?.capacity === v.capacity;
                   return (

@@ -41,12 +41,12 @@ export const QuoteResult: React.FC<QuoteResultProps> = ({
           <div className="flex items-center justify-center rounded-3xl bg-[#f6f5fa] p-5 dark:bg-neutral-900">
             <DeviceImage model={model} className="h-36 w-full sm:h-40" />
           </div>
-          <div className="flex flex-col justify-center">
+          <div className="flex flex-col justify-center text-center sm:text-left">
             <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Your exact value</p>
-            <h1 className="mt-1 text-lg font-semibold leading-snug text-ink dark:text-white sm:text-xl">
+            <h1 className="mt-1 text-lg font-bold leading-snug text-ink dark:text-white sm:text-xl">
               {fullDeviceName(brandName, model.name)} ({formatCapacity(variant.capacity)})
             </h1>
-            <p className="mt-3 text-5xl font-semibold tracking-tight text-ink dark:text-white" aria-live="polite">
+            <p className="mt-3 text-5xl font-extrabold tracking-tight text-ink dark:text-white" aria-live="polite">
               {formatINR(animated)}
             </p>
             {maxPrice > quote && (

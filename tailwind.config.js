@@ -20,12 +20,12 @@ export default {
           pink: '#ec4899',
           dark: '#0f0f1a',
         },
-        // Deep plum "ink" used for selected states & headings (turncash-style dark chips)
+        // Pure black "ink" used for selected states, headings & prices (pure black #000000, not purple)
         ink: {
-          DEFAULT: '#1f1147',
-          soft: '#2d1b69',
-          50: '#f5f3fb',
-          100: '#ebe7f6',
+          DEFAULT: '#000000',
+          soft: '#121212',
+          50: '#f5f5f7',
+          100: '#e5e5e7',
         },
         revoo: {
           50: '#fffbeb',
