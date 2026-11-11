@@ -184,10 +184,6 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
     if (key === 'isTouchscreenWorking') {
       nextAnswers.isDisplayOriginal = null;
       nextAnswers.hasValidWarranty = null;
-      if (value === false) {
-        nextAnswers.screenDisplayCondition = null;
-        nextAnswers.touchGlassCondition = null;
-      }
     }
     if (key === 'hasValidWarranty' && value === false) nextAnswers.deviceAge = null;
     onChange(nextAnswers);
@@ -267,7 +263,7 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                 )}
                 {answers.isPhoneWorking === true && answers.isTouchscreenWorking === false && (
                   <Notice title="Touchscreen not working">
-                    We'll price it for a display replacement. Next, tell us about the body condition.
+                    We'll price it for a display replacement. Next, tell us about the screen and body condition.
                   </Notice>
                 )}
               </div>

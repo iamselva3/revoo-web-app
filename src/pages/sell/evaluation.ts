@@ -191,11 +191,12 @@ export const DEVICE_AGE_OPTIONS = [
   { id: 'ABOVE_11_MONTHS', label: 'Above 11 months' },
 ];
 
-/** Which questions apply given the gatekeeper answers. */
-export const visiblePhysicalSections = (a: EvaluationAnswers): PhysicalSection[] =>
-  a.isTouchscreenWorking === false
-    ? PHYSICAL_SECTIONS.filter((s) => s.summaryGroup === 'Body') // dead touch already priced as worst screen
-    : PHYSICAL_SECTIONS;
+/**
+ * Physical questions shown to the customer. Screen + touch-glass are always asked (also when the
+ * touchscreen is dead) so the inspection team gets the full picture; the backend simply doesn't
+ * stack those deductions on top of the dead-touchscreen price.
+ */
+export const visiblePhysicalSections = (_a: EvaluationAnswers): PhysicalSection[] => PHYSICAL_SECTIONS;
 
 export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => {
   switch (tab) {
@@ -270,7 +271,7 @@ export const buildConditionPayload = (a: EvaluationAnswers) => {
 
   return {
     basicQuestions,
-    ...(showScreen
+    ...(working
       ? {
           screenDisplayCondition: a.screenDisplayCondition || 'NO_SPOT',
           touchGlassCondition: a.touchGlassCondition || 'NO_SCRATCH',
