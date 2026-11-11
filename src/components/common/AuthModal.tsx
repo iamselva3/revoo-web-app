@@ -1,542 +1,355 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Loader2, Mail, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/auth';
-import { X, Phone, Lock, Sparkles, CheckCircle2, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  '189151077426-h2vef3qi6j0apoqa6g59bvl8s78rmse8.apps.googleusercontent.com';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const OTP_LENGTH = 6;
+
+const apiError = (err: any, fallback: string) => err?.response?.data?.message || fallback;
+
+/** Waits briefly for the async Google Identity Services script to load. */
+const waitForGoogle = (timeoutMs = 4000): Promise<any> =>
+  new Promise((resolve, reject) => {
+    const started = Date.now();
+    const check = () => {
+      const g = (window as any).google;
+      if (g?.accounts?.oauth2) return resolve(g);
+      if (Date.now() - started > timeoutMs) return reject(new Error('Google sign-in is still loading. Please try again.'));
+      setTimeout(check, 150);
+    };
+    check();
+  });
+
+const GoogleIcon = () => (
+  <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+  </svg>
+);
+
+/** Six single-digit boxes with auto-advance, backspace and paste support. */
+const OtpInput: React.FC<{ value: string; onChange: (v: string) => void; disabled?: boolean }> = ({
+  value,
+  onChange,
+  disabled,
+}) => {
+  const refs = useRef<Array<HTMLInputElement | null>>([]);
+  const digits = Array.from({ length: OTP_LENGTH }, (_, i) => value[i] || '');
+
+  useEffect(() => {
+    refs.current[Math.min(value.length, OTP_LENGTH - 1)]?.focus();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setAt = (index: number, char: string) => {
+    const next = digits.slice();
+    next[index] = char;
+    onChange(next.join('').slice(0, OTP_LENGTH));
+  };
+
+  return (
+    <div className="flex justify-between gap-2" onPaste={(e) => {
+      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
+      if (pasted) {
+        e.preventDefault();
+        onChange(pasted);
+        refs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+      }
+    }}>
+      {digits.map((d, i) => (
+        <input
+          key={i}
+          ref={(el) => (refs.current[i] = el)}
+          type="text"
+          inputMode="numeric"
+          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+          aria-label={`Digit ${i + 1}`}
+          maxLength={1}
+          disabled={disabled}
+          value={d}
+          onChange={(e) => {
+            const char = e.target.value.replace(/\D/g, '').slice(-1);
+            setAt(i, char);
+            if (char && i < OTP_LENGTH - 1) refs.current[i + 1]?.focus();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Backspace' && !digits[i] && i > 0) {
+              setAt(i - 1, '');
+              refs.current[i - 1]?.focus();
+            } else if (e.key === 'ArrowLeft' && i > 0) refs.current[i - 1]?.focus();
+            else if (e.key === 'ArrowRight' && i < OTP_LENGTH - 1) refs.current[i + 1]?.focus();
+          }}
+          className="h-14 w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 text-center font-mono text-xl font-bold text-ink outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-300/30 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:bg-neutral-900"
+        />
+      ))}
+    </div>
+  );
+};
 
 export const AuthModal: React.FC = () => {
   const { isAuthModalOpen, closeAuthModal, loginWithAuthData } = useAuth();
-  const [tab, setTab] = useState<'otp' | 'password' | 'signup'>('otp');
 
-  // Form states
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState<'start' | 'code'>('start');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [password, setPassword] = useState('');
-
-  // Flow states
-  const [otpSent, setOtpSent] = useState(false);
-  const [debugOtp, setDebugOtp] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+  const [isSending, setIsSending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
 
-  const GOOGLE_CLIENT_ID =
-    '189151077426-h2vef3qi6j0apoqa6g59bvl8s78rmse8.apps.googleusercontent.com';
-
-  // Initialize Google Identity Services
-  React.useEffect(() => {
+  // Reset when the modal opens
+  useEffect(() => {
     if (!isAuthModalOpen) return;
-
-    if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
-      try {
-        (window as any).google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: async (response: any) => {
-            if (response?.credential) {
-              setIsGoogleLoading(true);
-              try {
-                const data = await authApi.googleAuth({ idToken: response.credential });
-                if (data.accessToken) {
-                  loginWithAuthData(data.accessToken, data.refreshToken, data.user);
-                } else {
-                  setErrorMsg('Authentication error: Unable to retrieve session from server.');
-                }
-              } catch (err: any) {
-                setErrorMsg(err.response?.data?.message || 'Google Sign-In failed on server.');
-              } finally {
-                setIsGoogleLoading(false);
-              }
-            }
-          },
-        });
-      } catch (e) {
-        console.warn('GSI init notice:', e);
-      }
-    }
+    setStep('start');
+    setOtp('');
+    setDevOtp(null);
+    setErrorMsg(null);
+    setInfoMsg(null);
   }, [isAuthModalOpen]);
 
-  // Prevent background page from scrolling while modal is open
-  React.useEffect(() => {
-    if (isAuthModalOpen) {
-      const originalOverflow = document.body.style.overflow;
-      const originalPaddingRight = document.body.style.paddingRight;
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  // Lock background scroll + Escape to close
+  useEffect(() => {
+    if (!isAuthModalOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeAuthModal();
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [isAuthModalOpen, closeAuthModal]);
 
-      document.body.style.overflow = 'hidden';
-      if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = `${scrollbarWidth}px`;
-      }
-
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.paddingRight = originalPaddingRight;
-      };
-    }
-  }, [isAuthModalOpen]);
+  // Resend countdown
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
   if (!isAuthModalOpen) return null;
 
-  const handleGoogleSignIn = () => {
+  const handleGoogle = async () => {
+    setErrorMsg(null);
     setIsGoogleLoading(true);
-    setErrorMsg(null);
-
-    // 1. Try Google Identity Services OAuth Token Client
-    if (typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
-      try {
-        const client = (window as any).google.accounts.oauth2.initTokenClient({
-          client_id: GOOGLE_CLIENT_ID,
-          scope: 'openid email profile',
-          callback: async (tokenResponse: any) => {
-            if (tokenResponse?.access_token) {
-              try {
-                const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                });
-                const googleUser = await userInfoRes.json();
-                const authRes = await authApi.googleAuth({
-                  accessToken: tokenResponse.access_token,
-                  email: googleUser.email,
-                  fullName: googleUser.name,
-                  avatarUrl: googleUser.picture,
-                });
-                if (authRes.accessToken) {
-                  loginWithAuthData(authRes.accessToken, authRes.refreshToken, authRes.user);
-                } else {
-                  setErrorMsg('Server returned empty authentication token.');
-                }
-              } catch (err: any) {
-                setErrorMsg(err.response?.data?.message || 'Google login failed to authenticate with backend.');
-              } finally {
-                setIsGoogleLoading(false);
-              }
-            }
-          },
-        });
-        client.requestAccessToken();
-        return;
-      } catch (e) {
-        console.warn('OAuth2 client notice:', e);
-      }
-    }
-
-    // 2. Open Real Google Accounts Verification & Account Chooser Popup Window
-    const redirectUri = window.location.origin;
-    const authUrl =
-      `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&response_type=token` +
-      `&scope=${encodeURIComponent('openid email profile')}` +
-      `&nonce=${Date.now()}` +
-      `&prompt=select_account`;
-
-    const width = 500;
-    const height = 620;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
-    const popup = window.open(
-      authUrl,
-      'google_verification_window',
-      `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes`
-    );
-
-    // Poll popup completion
-    const pollTimer = setInterval(async () => {
-      try {
-        if (!popup || popup.closed) {
-          clearInterval(pollTimer);
-          setIsGoogleLoading(false);
-          return;
-        }
-
-        const popupUrl = popup.location.href;
-        if (popupUrl && popupUrl.includes('access_token=')) {
-          clearInterval(pollTimer);
-          const hash = popup.location.hash.substring(1);
-          const params = new URLSearchParams(hash);
-          const accessToken = params.get('access_token');
-          popup.close();
-
-          if (accessToken) {
-            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            const googleUser = await userInfoRes.json();
-            const authRes = await authApi.googleAuth({
-              email: googleUser.email,
-              fullName: googleUser.name,
-              avatarUrl: googleUser.picture,
-            });
-            loginWithAuthData(authRes.accessToken, authRes.refreshToken, authRes.user);
+    try {
+      const google = await waitForGoogle();
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'openid email profile',
+        prompt: 'select_account',
+        callback: async (tokenResponse: any) => {
+          if (!tokenResponse?.access_token) {
+            setIsGoogleLoading(false);
+            setErrorMsg(tokenResponse?.error === 'access_denied' ? 'Google sign-in was cancelled.' : 'Google sign-in failed. Please try again.');
+            return;
           }
-        }
-      } catch {
-        // Cross-origin restriction while user is on accounts.google.com is expected
-      }
-    }, 500);
-  };
-
-  const handleRequestOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone || phone.length < 10) {
-      setErrorMsg('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    setErrorMsg(null);
-    setIsLoading(true);
-    try {
-      const res = await authApi.requestOtp(phone);
-      setOtpSent(true);
-      if (res.debugOtp) {
-        setDebugOtp(res.debugOtp);
-        setOtp(res.debugOtp);
-      }
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || 'Failed to send OTP. Try mock code 123456');
-      setOtpSent(true);
-      setOtp('123456');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp) {
-      setErrorMsg('Please enter the 6-digit OTP');
-      return;
-    }
-    setErrorMsg(null);
-    setIsLoading(true);
-    try {
-      const data = await authApi.verifyOtp(phone, otp);
-      loginWithAuthData(data.accessToken, data.refreshToken, data.user);
-    } catch (err: any) {
-      // If user not registered, fallback to mock guest session for seamless UX
-      loginWithAuthData('mock_token_' + Date.now(), 'mock_refresh', {
-        id: 'cust_' + phone,
-        phone,
-        fullName: fullName || 'Verified User',
+          try {
+            const auth = await authApi.googleAuth({ accessToken: tokenResponse.access_token });
+            if (!auth.accessToken) throw new Error('empty session');
+            loginWithAuthData(auth.accessToken, auth.refreshToken, auth.user);
+          } catch (err) {
+            setErrorMsg(apiError(err, 'We could not sign you in with Google. Please try again.'));
+          } finally {
+            setIsGoogleLoading(false);
+          }
+        },
+        error_callback: (err: any) => {
+          setIsGoogleLoading(false);
+          if (err?.type !== 'popup_closed') {
+            setErrorMsg(err?.type === 'popup_failed_to_open' ? 'Please allow pop-ups to sign in with Google.' : 'Google sign-in failed. Please try again.');
+          }
+        },
       });
-    } finally {
-      setIsLoading(false);
+      client.requestAccessToken();
+    } catch (err: any) {
+      setIsGoogleLoading(false);
+      setErrorMsg(err?.message || 'Google sign-in is unavailable right now.');
     }
   };
 
-  const handlePasswordLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const sendCode = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const clean = email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(clean)) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
     setErrorMsg(null);
+    setIsSending(true);
     try {
-      const data = await authApi.passwordLogin(phone, password);
-      loginWithAuthData(data.accessToken, data.refreshToken, data.user);
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || 'Invalid phone or password');
+      const res = await authApi.requestEmailOtp(clean);
+      setEmail(clean);
+      setStep('code');
+      setOtp(res.devOtp || '');
+      setDevOtp(res.devOtp || null);
+      setCooldown(res.resendCooldownSeconds || 60);
+      setInfoMsg(`We've sent a 6-digit code to ${clean}`);
+    } catch (err) {
+      setErrorMsg(apiError(err, 'We could not send the code. Please try again.'));
     } finally {
-      setIsLoading(false);
+      setIsSending(false);
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const verifyCode = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (otp.length !== OTP_LENGTH) {
+      setErrorMsg('Enter the 6-digit code from your email.');
+      return;
+    }
     setErrorMsg(null);
+    setIsVerifying(true);
     try {
-      const data = await authApi.signup({ fullName, phone, password });
-      loginWithAuthData(data.accessToken, data.refreshToken, data.user);
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || 'Failed to register account');
+      const auth = await authApi.verifyEmailOtp(email, otp);
+      loginWithAuthData(auth.accessToken, auth.refreshToken, auth.user);
+    } catch (err) {
+      setErrorMsg(apiError(err, 'That code did not work. Please try again.'));
+      setOtp('');
     } finally {
-      setIsLoading(false);
+      setIsVerifying(false);
     }
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto overscroll-contain animate-fade-in"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          closeAuthModal();
-        }
-      }}
+      className="fixed inset-0 z-[70] flex items-end justify-center overflow-y-auto bg-black/55 backdrop-blur-[2px] sm:items-center sm:p-4 animate-fade-in"
+      onClick={(e) => e.target === e.currentTarget && closeAuthModal()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-title"
     >
-      <div
-        className="relative w-full max-w-md my-auto bg-white rounded-3xl shadow-2xl border border-slate-100 animate-slide-up flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close Button */}
+      <div className="relative w-full max-h-[94vh] overflow-y-auto rounded-t-3xl border border-slate-200 bg-white shadow-2xl animate-slide-up dark:border-neutral-800 dark:bg-neutral-950 sm:max-w-[420px] sm:rounded-3xl safe-area-bottom">
         <button
+          type="button"
           onClick={closeAuthModal}
-          className="absolute top-4 right-4 z-10 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition"
-          aria-label="Close modal"
+          className="absolute right-3 top-3 z-10 rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
+          aria-label="Close"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </button>
 
-        {/* Modal Header (Fixed at top of modal) */}
-        <div className="p-5 sm:p-6 bg-gradient-to-br from-rose-50 via-pink-50 to-violet-50 border-b border-rose-100/60 text-center shrink-0">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 text-white flex items-center justify-center mx-auto mb-2.5 sm:mb-3 shadow-brand-sm">
-            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
-            Welcome to Genie
+        <div className="px-6 pb-2 pt-7 text-center sm:px-8">
+          <img src="/genie_emblem.png" alt="" aria-hidden="true" className="mx-auto h-14 w-auto" draggable={false} />
+          <h2 id="auth-title" className="mt-3 text-xl font-bold tracking-tight text-ink dark:text-white">
+            {step === 'start' ? 'Log in or sign up' : 'Check your email'}
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5 sm:mt-1">
-            Doorstep smartphone buyback & certified circular tech
+          <p className="mt-1 text-[13px] text-slate-500 dark:text-neutral-400">
+            {step === 'start'
+              ? 'See your exact price and book a free doorstep pickup.'
+              : infoMsg}
           </p>
         </div>
 
-        {/* Form Body (Scrolls smoothly without scrolling the background page) */}
-        <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1">
+        <div className="px-6 pb-7 pt-4 sm:px-8">
           {errorMsg && (
-            <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+            <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" role="alert">
               {errorMsg}
             </div>
           )}
 
-          {/* 1. SIGN IN WITH GOOGLE (Appears First) */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading}
-            className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 rounded-2xl font-bold text-sm text-slate-800 shadow-2xs hover:shadow-xs transition-all flex items-center justify-center gap-3 active:scale-[0.99]"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-rose-600" />
-            ) : (
-              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-            )}
-            <span>Sign in with Google</span>
-          </button>
-
-          {/* Aesthetic "OR" Divider */}
-          <div className="relative flex items-center justify-center my-4">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-white px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0">
-              or continue with mobile
-            </span>
-            <div className="border-t border-slate-200 w-full" />
-          </div>
-
-          {/* Tab Selector */}
-          <div className="flex items-center justify-center gap-1 mb-4 p-1 bg-slate-100 rounded-xl text-xs font-bold border border-slate-200/60">
-            <button
-              onClick={() => { setTab('otp'); setErrorMsg(null); setOtpSent(false); }}
-              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'otp' ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm' : 'text-slate-600 hover:text-slate-900'}`}
-            >
-              Instant OTP
-            </button>
-            <button
-              onClick={() => { setTab('password'); setErrorMsg(null); }}
-              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'password' ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm' : 'text-slate-600 hover:text-slate-900'}`}
-            >
-              Password
-            </button>
-            <button
-              onClick={() => { setTab('signup'); setErrorMsg(null); }}
-              className={`flex-1 py-1.5 rounded-lg transition ${tab === 'signup' ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm' : 'text-slate-600 hover:text-slate-900'}`}
-            >
-              New User
-            </button>
-          </div>
-
-          {tab === 'otp' && (
-            !otpSent ? (
-              <form onSubmit={handleRequestOtp} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Mobile Number
-                  </label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-3.5 text-xs font-extrabold text-slate-500 pointer-events-none">
-                      +91
-                    </span>
-                    <input
-                      type="tel"
-                      maxLength={10}
-                      required
-                      placeholder="98765 43210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white"
-                      autoFocus
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Get 6-Digit OTP</span> <ArrowRight className="w-4 h-4" /></>}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-700">
-                      Enter 6-Digit Verification Code
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setOtpSent(false)}
-                      className="text-[11px] font-bold text-rose-600 hover:underline"
-                    >
-                      Change Number
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    required
-                    placeholder="Enter OTP (e.g. 123456)"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-base text-center tracking-widest font-mono font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white"
-                    autoFocus
-                  />
-                  {debugOtp && (
-                    <span className="inline-block mt-2 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                      Auto-filled OTP: <strong>{debugOtp}</strong>
-                    </span>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Verify & Continue</span> <CheckCircle2 className="w-4 h-4" /></>}
-                </button>
-              </form>
-            )
-          )}
-
-          {tab === 'password' && (
-            <form onSubmit={handlePasswordLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Mobile Number
-                </label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs font-extrabold text-slate-500 pointer-events-none">+91</span>
-                  <input
-                    type="tel"
-                    maxLength={10}
-                    required
-                    placeholder="98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-
+          {step === 'start' ? (
+            <>
               <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
+                type="button"
+                onClick={handleGoogle}
+                disabled={isGoogleLoading}
+                className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 transition hover:bg-slate-50 hover:shadow-soft disabled:opacity-70 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Login'}
+                {isGoogleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
+                Continue with Google
               </button>
+
+              <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                <span className="h-px flex-1 bg-slate-200 dark:bg-neutral-800" />
+                or continue with email
+                <span className="h-px flex-1 bg-slate-200 dark:bg-neutral-800" />
+              </div>
+
+              <form onSubmit={sendCode} className="space-y-3" noValidate>
+                <label htmlFor="auth-email" className="sr-only">Email address</label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400 dark:text-neutral-500" />
+                  <input
+                    id="auth-email"
+                    type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-ink outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-300/30 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+                  />
+                </div>
+                <button type="submit" disabled={isSending} className="btn-genie w-full">
+                  {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Send code <ArrowRight className="h-4 w-4" /></>}
+                </button>
+              </form>
+            </>
+          ) : (
+            <form onSubmit={verifyCode} className="space-y-4">
+              <OtpInput value={otp} onChange={setOtp} disabled={isVerifying} />
+
+              {devOtp && (
+                <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-xs text-amber-800 dark:bg-amber-400/10 dark:text-amber-200">
+                  Development mode: email delivery isn't configured, code <strong>{devOtp}</strong> was filled in.
+                </p>
+              )}
+
+              <button type="submit" disabled={isVerifying || otp.length !== OTP_LENGTH} className="btn-genie w-full">
+                {isVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify & continue'}
+              </button>
+
+              <div className="flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('start');
+                    setErrorMsg(null);
+                    setOtp('');
+                  }}
+                  className="inline-flex items-center gap-1 font-semibold text-slate-500 hover:text-ink dark:text-neutral-400 dark:hover:text-white"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> Change email
+                </button>
+                <button
+                  type="button"
+                  disabled={cooldown > 0 || isSending}
+                  onClick={() => sendCode()}
+                  className="font-semibold text-amber-600 hover:text-amber-700 disabled:cursor-not-allowed disabled:text-slate-400 dark:text-amber-400 dark:disabled:text-neutral-600"
+                >
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
+                </button>
+              </div>
+              <p className="text-center text-[11px] text-slate-400 dark:text-neutral-500">
+                Can't find it? Check your spam or promotions folder.
+              </p>
             </form>
           )}
 
-          {tab === 'signup' && (
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Selva Kumar"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Mobile Number</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs font-extrabold text-slate-500 pointer-events-none">+91</span>
-                  <input
-                    type="tel"
-                    maxLength={10}
-                    required
-                    placeholder="98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Set Password</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="At least 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 disabled:opacity-60 text-white font-bold text-sm shadow-brand-sm transition flex items-center justify-center gap-2"
-              >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Account'}
-              </button>
-            </form>
-          )}
-
-          <div className="mt-5 text-center">
-            <p className="text-[11px] text-slate-400">
-              By continuing, you agree to Genie's <a href="#" className="underline text-slate-600">Terms of Service</a> & <a href="#" className="underline text-slate-600">Privacy Policy</a>
-            </p>
-          </div>
+          <p className="mt-6 text-center text-[11px] leading-relaxed text-slate-400 dark:text-neutral-500">
+            By continuing, you agree to Genie's{' '}
+            <Link to="/terms" onClick={closeAuthModal} className="font-semibold text-slate-600 underline-offset-2 hover:underline dark:text-neutral-300">
+              Terms
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" onClick={closeAuthModal} className="font-semibold text-slate-600 underline-offset-2 hover:underline dark:text-neutral-300">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>
   );
 };
-

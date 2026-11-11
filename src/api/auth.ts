@@ -7,59 +7,48 @@ export interface AuthResponse {
   user: CustomerUser;
 }
 
+export interface EmailOtpRequestResult {
+  message: string;
+  resendCooldownSeconds: number;
+  expiresInSeconds: number;
+  /** Only returned by a development backend when email delivery isn't configured. */
+  devOtp?: string;
+}
+
 const extractAuthData = (data: any): AuthResponse => {
-  const accessToken =
-    data?.tokens?.accessToken ||
-    data?.accessToken ||
-    data?.token ||
-    '';
-  const refreshToken =
-    data?.tokens?.refreshToken ||
-    data?.refreshToken ||
-    '';
+  const accessToken = data?.tokens?.accessToken || data?.accessToken || data?.token || '';
+  const refreshToken = data?.tokens?.refreshToken || data?.refreshToken || '';
   const user = data?.user || data;
   return { accessToken, refreshToken, user };
 };
 
 export const authApi = {
-  requestOtp: async (phone: string): Promise<{ success: boolean; message: string; debugOtp?: string }> => {
-    const res = await apiClient.post('/auth/customer/request-otp', { phone });
-    return res.data;
+  /** Sends a 6-digit sign-in code to the email address (delivered by the backend via nodemailer). */
+  requestEmailOtp: async (email: string): Promise<EmailOtpRequestResult> => {
+    const res = await apiClient.post('/auth/customer/request-otp', {
+      destination: email.trim().toLowerCase(),
+      channel: 'EMAIL',
+    });
+    const data = res.data?.data || {};
+    return {
+      message: res.data?.message || 'Code sent',
+      resendCooldownSeconds: data.resendCooldownSeconds ?? 60,
+      expiresInSeconds: data.expiresInSeconds ?? 300,
+      devOtp: data.devOtp,
+    };
   },
 
-  verifyOtp: async (
-    phone: string,
-    otp: string
-  ): Promise<AuthResponse> => {
-    const res = await apiClient.post('/auth/customer/verify-otp', { phone, otp });
+  verifyEmailOtp: async (email: string, otp: string): Promise<AuthResponse> => {
+    const res = await apiClient.post('/auth/customer/verify-otp', {
+      destination: email.trim().toLowerCase(),
+      channel: 'EMAIL',
+      otp,
+    });
     return extractAuthData(res.data?.data);
   },
 
-  passwordLogin: async (
-    phone: string,
-    password: string
-  ): Promise<AuthResponse> => {
-    const res = await apiClient.post('/auth/customer/login-password', { phone, password });
-    return extractAuthData(res.data?.data);
-  },
-
-  signup: async (data: {
-    fullName: string;
-    phone: string;
-    password?: string;
-  }): Promise<AuthResponse> => {
-    const res = await apiClient.post('/auth/customer/signup', data);
-    return extractAuthData(res.data?.data);
-  },
-
-  googleAuth: async (payload: {
-    idToken?: string;
-    code?: string;
-    accessToken?: string;
-    email?: string;
-    fullName?: string;
-    avatarUrl?: string;
-  }): Promise<AuthResponse> => {
+  /** Exchanges a Google OAuth access token (verified server-side) for a Genie session. */
+  googleAuth: async (payload: { idToken?: string; accessToken?: string }): Promise<AuthResponse> => {
     const res = await apiClient.post('/auth/customer/google', payload);
     return extractAuthData(res.data?.data);
   },
@@ -69,4 +58,3 @@ export const authApi = {
     return res.data?.data?.user || res.data?.data;
   },
 };
-

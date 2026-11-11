@@ -7,66 +7,56 @@ export const MobileNav: React.FC = () => {
   const location = useLocation();
   const { user, openAuthModal } = useAuth();
 
+  // Hide during the sell flow so its own sticky action bar has the full width
+  if (location.pathname === '/sell') return null;
+
   const isActive = (path: string) => location.pathname === path;
 
-  // Hide bottom navigation during sell evaluation flow to maintain full focus like the mobile app
-  if (location.pathname === '/sell') {
-    return null;
-  }
+  const itemClass = (active: boolean) =>
+    `relative flex flex-col items-center justify-center gap-0.5 py-1.5 text-[11px] font-semibold transition-colors ${
+      active ? 'text-ink dark:text-white' : 'text-slate-500 hover:text-ink dark:text-neutral-500 dark:hover:text-neutral-200'
+    }`;
+
+  const indicator = (active: boolean) =>
+    active ? <span className="absolute top-0 h-[3px] w-8 rounded-full bg-amber-400" /> : null;
+
+  const iconClass = (active: boolean) =>
+    `h-[22px] w-[22px] ${active ? 'text-amber-500' : ''}`;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 shadow-2xl safe-area-bottom">
-      <div className="grid grid-cols-4 gap-1">
-        <Link
-          to="/"
-          className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
-            isActive('/') ? 'text-rose-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
-          }`}
-        >
-          <Home className={`w-5 h-5 ${isActive('/') ? 'stroke-[2.5]' : 'stroke-2'}`} />
-          <span className="text-[10px] mt-0.5">Home</span>
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md dark:border-neutral-900 dark:bg-black/90 lg:hidden safe-area-bottom"
+      aria-label="Bottom navigation"
+    >
+      <div className="grid grid-cols-4">
+        <Link to="/" className={itemClass(isActive('/'))}>
+          {indicator(isActive('/'))}
+          <Home className={iconClass(isActive('/'))} strokeWidth={isActive('/') ? 2.4 : 2} />
+          Home
         </Link>
-
-        <Link
-          to="/sell"
-          className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
-            isActive('/sell') ? 'text-rose-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
-          }`}
-        >
-          <Smartphone className={`w-5 h-5 ${isActive('/sell') ? 'stroke-[2.5]' : 'stroke-2'}`} />
-          <span className="text-[10px] mt-0.5">Sell</span>
+        <Link to="/sell" className={itemClass(isActive('/sell'))}>
+          {indicator(isActive('/sell'))}
+          <Smartphone className={iconClass(isActive('/sell'))} strokeWidth={isActive('/sell') ? 2.4 : 2} />
+          Sell
         </Link>
-
-        <Link
-          to="/track"
-          className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
-            isActive('/track') ? 'text-rose-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
-          }`}
-        >
-          <Truck className={`w-5 h-5 ${isActive('/track') ? 'stroke-[2.5]' : 'stroke-2'}`} />
-          <span className="text-[10px] mt-0.5">Track</span>
+        <Link to="/track" className={itemClass(isActive('/track'))}>
+          {indicator(isActive('/track'))}
+          <Truck className={iconClass(isActive('/track'))} strokeWidth={isActive('/track') ? 2.4 : 2} />
+          Track
         </Link>
-
         {user ? (
-          <Link
-            to="/profile"
-            className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
-              isActive('/profile') ? 'text-rose-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <User className={`w-5 h-5 ${isActive('/profile') ? 'stroke-[2.5]' : 'stroke-2'}`} />
-            <span className="text-[10px] mt-0.5">Profile</span>
+          <Link to="/profile" className={itemClass(isActive('/profile'))}>
+            {indicator(isActive('/profile'))}
+            <User className={iconClass(isActive('/profile'))} strokeWidth={isActive('/profile') ? 2.4 : 2} />
+            Profile
           </Link>
         ) : (
-          <button
-            onClick={openAuthModal}
-            className="flex flex-col items-center justify-center py-1 text-slate-500 hover:text-rose-600 transition"
-          >
-            <User className="w-5 h-5 stroke-2" />
-            <span className="text-[10px] mt-0.5">Login</span>
+          <button type="button" onClick={openAuthModal} className={itemClass(false)}>
+            <User className={iconClass(false)} strokeWidth={2} />
+            Log in
           </button>
         )}
       </div>
-    </div>
+    </nav>
   );
 };

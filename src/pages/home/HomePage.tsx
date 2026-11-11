@@ -1,424 +1,285 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, BadgeIndianRupee, ChevronRight, ShieldCheck, Star, Truck, MapPin } from 'lucide-react';
 import { catalogueApi } from '../../api/catalogue';
 import { resolveImageUrl } from '../../api/client';
 import { Brand, Banner, CustomerReview } from '../../types';
 import { usePageLoading } from '../../context/PageLoadingContext';
 import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
-import {
-  Smartphone,
-  Laptop,
-  Tablet,
-  Tv,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-  Lock,
-  Star,
-  CheckCircle2,
-  ChevronRight,
-  Sparkles,
-  TrendingUp,
-  Award,
-} from 'lucide-react';
+import { BrandLogo } from '../../components/brand/BrandLogo';
+import { CategoryArt, CategoryArtKind } from '../../components/sell/CategoryArt';
+
+const CATEGORIES: Array<{
+  id: CategoryArtKind;
+  tagline: string;
+  title: string;
+  sub: string;
+  tint: string;
+}> = [
+  { id: 'phone', tagline: 'Cash calling', title: 'Sell Mobile', sub: 'Free doorstep pickup', tint: 'from-amber-100 via-orange-50 to-rose-100 dark:from-amber-500/15 dark:via-neutral-900 dark:to-rose-500/10' },
+  { id: 'laptop', tagline: 'Upgrade ready', title: 'Sell Laptop', sub: 'The quote is the price', tint: 'from-violet-100 via-indigo-50 to-sky-100 dark:from-violet-500/15 dark:via-neutral-900 dark:to-sky-500/10' },
+  { id: 'tablet', tagline: 'Hidden worth', title: 'Sell Tablet', sub: 'Paid by UPI at your door', tint: 'from-sky-100 via-cyan-50 to-emerald-100 dark:from-sky-500/15 dark:via-neutral-900 dark:to-emerald-500/10' },
+  { id: 'tv', tagline: 'Big screen, big cash', title: 'Sell Smart TV', sub: 'Paid before we leave', tint: 'from-rose-100 via-pink-50 to-fuchsia-100 dark:from-rose-500/15 dark:via-neutral-900 dark:to-fuchsia-500/10' },
+];
+
+const HERO_WORDS = ['phone', 'laptop', 'tablet', 'smart TV'];
+
+const WHY = [
+  { icon: Truck, title: 'Collected from your door', text: 'Pick a slot. A verified Genie agent comes to your home or office anywhere in Tamil Nadu.' },
+  { icon: ShieldCheck, title: 'The quote is the price', text: "Answer honestly and the price you see online is the price you're paid. No haggling at the door." },
+  { icon: BadgeIndianRupee, title: 'Paid before we leave', text: 'UPI, bank transfer or cash, done on the spot after a quick 2-minute check.' },
+];
+
+const SectionHeader: React.FC<{ title: string; subtitle?: string; action?: React.ReactNode }> = ({ title, subtitle, action }) => (
+  <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
+    <div>
+      <h2 className="text-xl font-bold tracking-tight text-ink dark:text-white sm:text-2xl">{title}</h2>
+      {subtitle && <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400">{subtitle}</p>}
+    </div>
+    {action}
+  </div>
+);
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { setIsPageLoading } = usePageLoading();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const { setIsPageLoading } = usePageLoading();
   const [reviews, setReviews] = useState<CustomerReview[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'phone' | 'laptop' | 'tablet' | 'tv'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [wordIdx, setWordIdx] = useState(0);
 
   useEffect(() => {
     setIsPageLoading(true);
-    const fetchData = async () => {
-      try {
-        const [bannerData, brandData, reviewData] = await Promise.all([
-          catalogueApi.getBanners(),
-          catalogueApi.getBrands(),
-          catalogueApi.getReviews('sell'),
-        ]);
-
-        if (bannerData.length > 0) setBanners(bannerData);
-        if (brandData.length > 0) setBrands(brandData);
-        if (reviewData.length > 0) setReviews(reviewData);
-      } catch (err) {
-        console.error('Error loading home data:', err);
-      } finally {
+    Promise.all([catalogueApi.getBanners(), catalogueApi.getBrands().catch(() => []), catalogueApi.getReviews('sell')])
+      .then(([bannerData, brandData, reviewData]) => {
+        setBanners(bannerData);
+        setBrands(brandData);
+        setReviews(reviewData);
+      })
+      .catch((err) => console.error('Error loading home data:', err))
+      .finally(() => {
         setIsLoading(false);
         setIsPageLoading(false);
-      }
-    };
-
-    fetchData();
+      });
     return () => setIsPageLoading(false);
   }, [setIsPageLoading]);
 
-  // Banner auto-play
   useEffect(() => {
     if (banners.length <= 1) return;
-    const interval = setInterval(() => {
-      setActiveBannerIdx((prev) => (prev + 1) % banners.length);
-    }, 5000);
-    return () => clearInterval(interval);
+    const id = setInterval(() => setActiveBannerIdx((p) => (p + 1) % banners.length), 5000);
+    return () => clearInterval(id);
   }, [banners.length]);
 
+  useEffect(() => {
+    const id = setInterval(() => setWordIdx((p) => (p + 1) % HERO_WORDS.length), 2200);
+    return () => clearInterval(id);
+  }, []);
+
   if (isLoading) {
-    return (
-      <PageLoadingSkeleton
-        title="Loading Genie Buyback Hub..."
-        subtitle="Retrieving verified buyback prices, partner offers, and certified electronics"
-        type="home"
-      />
-    );
+    return <PageLoadingSkeleton title="Loading Genie…" subtitle="Fetching the latest prices and offers" type="home" />;
   }
 
   return (
-    <div className="space-y-12 sm:space-y-16 pb-16">
-      {/* 1. Hero Promotional Banner Carousel */}
-      <section className="relative overflow-hidden bg-slate-950 text-white">
-        {banners.length > 0 ? (
-          <div className="relative h-[280px] sm:h-[380px] lg:h-[460px] w-full max-w-7xl mx-auto">
+    <div className="space-y-14 pb-20 sm:space-y-20">
+      {/* 1. Hero */}
+      {banners.length > 0 ? (
+        <section className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+          <div className="relative h-[260px] overflow-hidden rounded-3xl bg-ink sm:h-[360px] lg:h-[420px]">
             {banners.map((b, idx) => (
               <div
-                key={b._id || b.title || `banner-${idx}`}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                  idx === activeBannerIdx ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-                }`}
+                key={b._id || `banner-${idx}`}
+                className={`absolute inset-0 transition-opacity duration-700 ${idx === activeBannerIdx ? 'z-10 opacity-100' : 'pointer-events-none z-0 opacity-0'}`}
+                aria-hidden={idx !== activeBannerIdx}
               >
                 <img
                   src={resolveImageUrl(b.imageUrl)}
-                  alt={b.title}
-                  className="w-full h-full object-cover object-center brightness-90"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  onError={(e) => ((e.target as HTMLElement).style.display = 'none')}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent flex items-center">
-                  <div className="max-w-2xl px-6 sm:px-12 py-8 space-y-3 sm:space-y-4">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30 backdrop-blur-md">
-                      <Sparkles className="w-3.5 h-3.5 text-rose-400" /> Genie Direct Buyback
-                    </span>
-                    <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                      {b.title}
-                    </h1>
-                    {b.subtitle && (
-                      <p className="text-xs sm:text-sm text-slate-300 max-w-lg line-clamp-2">
-                        {b.subtitle}
-                      </p>
-                    )}
-                    <div className="pt-2">
-                      <Link
-                        to={b.ctaLink || '/sell'}
-                        className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-black text-xs sm:text-sm shadow-brand-glow transition-all hover:scale-105"
-                      >
-                        <span>{b.ctaText || 'Sell Your Phone Now'}</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
+                <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/75 via-black/30 to-transparent sm:items-center sm:bg-gradient-to-r">
+                  <div className="max-w-xl space-y-3 p-6 sm:p-12">
+                    <h1 className="text-2xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">{b.title}</h1>
+                    {b.subtitle && <p className="line-clamp-2 text-sm text-white/80">{b.subtitle}</p>}
+                    <Link to={b.ctaLink || '/sell'} className="btn-genie !inline-flex">
+                      {b.ctaText || 'Get your price'} <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
             ))}
-
-            {/* Banner Dots */}
             {banners.length > 1 && (
-              <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-2">
+              <div className="absolute bottom-4 right-5 z-20 flex gap-1.5">
                 {banners.map((_, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => setActiveBannerIdx(idx)}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === activeBannerIdx ? 'w-8 bg-gradient-to-r from-rose-500 to-violet-500' : 'w-2 bg-white/40 hover:bg-white/70'
-                    }`}
-                    aria-label={`Go to slide ${idx + 1}`}
+                    aria-label={`Show slide ${idx + 1}`}
+                    className={`h-1.5 rounded-full transition-all ${idx === activeBannerIdx ? 'w-7 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white/80'}`}
                   />
                 ))}
               </div>
             )}
           </div>
-        ) : (
-          /* Default Hero if no banners returned */
-          <div className="max-w-7xl mx-auto px-6 py-16 sm:py-24 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div className="space-y-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                <Sparkles className="w-3.5 h-3.5 text-rose-400" /> Tamil Nadu's #1 Device Buyback Platform
-              </span>
-              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-                Sell Your Used Phone in{' '}
-                <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-violet-400 bg-clip-text text-transparent">
-                  60 Seconds
-                </span>
-              </h1>
-              <p className="text-sm text-slate-300 leading-relaxed max-w-lg">
-                Get an instant guaranteed AI valuation, free doorstep pickup across all 38 districts of Tamil Nadu, and direct instant bank transfer on device handover.
+        </section>
+      ) : (
+        <section className="border-b border-slate-100 bg-gradient-to-br from-amber-50 via-white to-violet-50 dark:border-neutral-900 dark:from-neutral-950 dark:via-black dark:to-neutral-950">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
+            <div>
+              <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/20 dark:bg-neutral-900 dark:text-amber-300">
+                <MapPin className="h-3.5 w-3.5" /> Free doorstep pickup across Tamil Nadu
               </p>
-              <div className="pt-2 flex flex-wrap gap-3">
-                <Link
-                  to="/sell"
-                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-black text-sm shadow-brand-glow transition flex items-center gap-2 hover:scale-105"
-                >
-                  <Smartphone className="w-4 h-4" />
-                  <span>Sell Device & Get Cash</span>
-                  <ArrowRight className="w-4 h-4" />
+              <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:text-5xl">
+                Sell your old{' '}
+                <span key={wordIdx} className="inline-block animate-slide-up bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 bg-clip-text text-transparent">
+                  {HERO_WORDS[wordIdx]}
+                </span>
+                <br />
+                for cash.
+              </h1>
+              <p className="mt-4 max-w-md text-base text-slate-600 dark:text-neutral-300">
+                Get your exact price in 60 seconds, a free pickup from your door, and payment before our agent leaves.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/sell" className="btn-genie !text-base">
+                  Get your price <ArrowRight className="h-5 w-5" />
+                </Link>
+                <Link to="/track" className="btn-ghost">
+                  Track a pickup
                 </Link>
               </div>
             </div>
-
-            <div className="relative hidden lg:flex items-center justify-center">
-              <div className="w-80 h-80 rounded-full bg-rose-500/20 blur-3xl absolute" />
-              <img
-                src="/uploads/devices/pixel-8-pro.png"
-                alt="Smartphone Buyback"
-                className="relative z-10 w-72 object-contain drop-shadow-2xl animate-pulse-subtle"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/uploads/devices/pixel-7a.png';
-                }}
-              />
+            <div className="hidden justify-center lg:flex">
+              <CategoryArt kind="phone" className="h-80 w-auto" />
             </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* 2. Device Category Selector Pills */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-rose-600" /> Choose Category to Sell
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Select your gadget to check instant exchange or buyback valuation
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          {[
-            { id: 'phone', label: 'Mobile Phones', sub: 'iPhone, Galaxy, Pixel & more', icon: Smartphone, count: '100+ Models', popular: true },
-            { id: 'laptop', label: 'Laptops', sub: 'MacBook, Dell, HP, Lenovo', icon: Laptop, count: '40+ Models' },
-            { id: 'tablet', label: 'Tablets & iPads', sub: 'iPad Pro, Air, Galaxy Tab', icon: Tablet, count: '25+ Models' },
-            { id: 'tv', label: 'Smart TVs', sub: 'Sony Bravia, LG OLED, Samsung', icon: Tv, count: '15+ Models' },
-          ].map((cat) => {
-            const Icon = cat.icon;
-            const isSelected = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setSelectedCategory(cat.id as any);
-                  navigate(`/sell?category=${cat.id}`);
-                }}
-                className={`relative p-4 rounded-3xl text-left border transition-all group overflow-hidden ${
-                  isSelected
-                    ? 'bg-rose-50/80 border-rose-500 shadow-brand-sm ring-2 ring-rose-500/20'
-                    : 'bg-white hover:bg-slate-50 border-slate-200/90 shadow-card hover:shadow-card-hover hover:border-rose-300'
-                }`}
-              >
-                {cat.popular && (
-                  <span className="absolute top-3 right-3 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-2xs">
-                    Popular
-                  </span>
-                )}
-                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-gradient-to-r group-hover:from-rose-600 group-hover:to-violet-600 group-hover:text-white transition">
-                  <Icon className="w-6 h-6" />
-                </div>
-                <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-rose-600 transition">
-                  {cat.label}
-                </h3>
-                <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{cat.sub}</p>
-                <span className="inline-block mt-2 text-[10px] font-bold text-slate-400 font-mono">
-                  {cat.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 3. Interactive Brands Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Award className="w-5 h-5 text-rose-600" /> Select Brand
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Instant valuation and doorstep pickup available for all major brands
-            </p>
-          </div>
-          <Link
-            to="/sell"
-            className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 group"
-          >
-            <span>View All</span>
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-          {brands.slice(0, 12).map((b) => (
+      {/* 2. Sell your gadgets (category cards) */}
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SectionHeader
+          title="Choose a category to sell"
+          subtitle="Phones, laptops, tablets and TVs, all picked up free from your door."
+          action={
+            <Link to="/sell" className="flex shrink-0 items-center gap-0.5 text-sm font-semibold text-ink hover:text-amber-600 dark:text-white dark:hover:text-amber-300">
+              View all <ChevronRight className="h-4 w-4" />
+            </Link>
+          }
+        />
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+          {CATEGORIES.map((c) => (
             <button
-              key={b._id}
-              onClick={() => navigate(`/sell?brand=${b.slug}`)}
-              className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-card hover:shadow-card-hover hover:border-rose-400 transition-all hover:-translate-y-1 flex flex-col items-center justify-center gap-2 group"
+              key={c.id}
+              type="button"
+              onClick={() => navigate(`/sell?category=${c.id}`)}
+              className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-card-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/40 dark:border-neutral-800 dark:bg-neutral-950"
             >
-              <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center p-2 group-hover:scale-110 transition">
-                <img
-                  src={resolveImageUrl(b.logoUrl)}
-                  alt={b.name}
-                  className="max-h-full max-w-full object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
-                />
-              </div>
-              <span className="text-xs font-bold text-slate-800 group-hover:text-rose-600 transition">
-                {b.name}
+              <span className={`relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br ${c.tint} p-3 sm:p-5`}>
+                <CategoryArt kind={c.id} className="h-full w-full transition-transform duration-300 group-hover:scale-105" />
+              </span>
+              <span className="flex flex-1 flex-col p-3.5 sm:p-5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-300">{c.tagline}</span>
+                <span className="mt-1 flex items-center justify-between gap-2 text-base font-bold text-ink dark:text-white sm:text-lg">
+                  {c.title}
+                  <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-ink dark:text-neutral-500 dark:group-hover:text-white" />
+                </span>
+                <span className="mt-0.5 text-xs text-slate-500 dark:text-neutral-400 sm:text-sm">{c.sub}</span>
               </span>
             </button>
           ))}
         </div>
       </section>
 
-      {/* 4. 3-Step Simple How It Works Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950/80 text-white rounded-3xl p-6 sm:p-12 border border-violet-900/40 relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="text-center max-w-xl mx-auto space-y-2 mb-10 relative z-10">
-            <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              Zero Stress • 100% Transparency
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              How Selling Works on Genie
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300">
-              Three simple steps from getting a quote to receiving direct payment in your bank.
-            </p>
+      {/* 3. Top brands */}
+      {brands.length > 0 && (
+        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            title="Top brands"
+            subtitle="Every brand worth naming, priced to the model."
+            action={
+              <Link to="/sell" className="flex shrink-0 items-center gap-0.5 text-sm font-semibold text-ink hover:text-amber-600 dark:text-white dark:hover:text-amber-300">
+                All brands <ChevronRight className="h-4 w-4" />
+              </Link>
+            }
+          />
+          <div className="grid grid-cols-4 gap-2.5 sm:gap-3 lg:grid-cols-8">
+            {brands.slice(0, 16).map((b) => (
+              <button
+                key={b._id}
+                type="button"
+                onClick={() => navigate(`/sell?brand=${b.slug}`)}
+                title={`Sell old ${b.name} phone`}
+                className="logo-tile group flex h-16 items-center justify-center rounded-2xl border border-slate-200 px-3 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-soft focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/40 dark:border-neutral-800 sm:h-20 sm:px-4"
+              >
+                <BrandLogo name={b.name} slug={b.slug} logoUrl={b.logoUrl} className="h-7 w-full max-w-[90px] sm:h-8" />
+              </button>
+            ))}
           </div>
+        </section>
+      )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-rose-600 to-violet-600 text-white font-black flex items-center justify-center text-sm shadow-brand-sm">
-                01
+      {/* 4. Why Genie */}
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SectionHeader title="Why Genie" subtitle="Built so nothing changes at the door." />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {WHY.map(({ icon: Icon, title, text }, i) => (
+            <div key={title} className="surface p-6">
+              <div className="flex items-center justify-between">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-400/10 dark:text-amber-300">
+                  <Icon className="h-6 w-6" />
+                </span>
+                <span className="text-4xl font-bold text-slate-100 dark:text-neutral-900">0{i + 1}</span>
               </div>
-              <h3 className="text-base font-extrabold text-white">Get Instant Valuation</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Choose your phone, answer a 30-second condition checklist, and view your exact cash value calculated in real time.
-              </p>
+              <h3 className="mt-4 text-lg font-semibold text-ink dark:text-white">{title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-neutral-400">{text}</p>
             </div>
-
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-rose-600 to-violet-600 text-white font-black flex items-center justify-center text-sm shadow-brand-sm">
-                02
-              </div>
-              <h3 className="text-base font-extrabold text-white">Free Doorstep Pickup</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Our verified pickup partner visits your home or office anywhere across Tamil Nadu at your chosen date and slot.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-rose-600 to-violet-600 text-white font-black flex items-center justify-center text-sm shadow-brand-sm">
-                03
-              </div>
-              <h3 className="text-base font-extrabold text-white">Instant UPI / Bank Transfer</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                After a quick 2-minute diagnostic verification at your doorstep, money is deposited directly to your bank account or UPI ID.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-10 text-center relative z-10">
-            <Link
-              to="/sell"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-violet-600 hover:from-rose-700 hover:via-pink-700 hover:to-violet-700 text-white font-black text-sm shadow-brand-glow transition-all hover:scale-105"
-            >
-              <span>Calculate Your Phone's Worth Now</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          ))}
+        </div>
+        <div className="mt-8 flex justify-center">
+          <Link to="/sell" className="btn-genie !text-base">
+            Check your phone's price <ArrowRight className="h-5 w-5" />
+          </Link>
         </div>
       </section>
 
-      {/* 5. Customer Reviews Section */}
+      {/* 5. Reviews */}
       {reviews.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <Star className="w-5 h-5 text-amber-500 fill-amber-500" /> Customer Experiences
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Real feedback from customers across Chennai, Coimbatore, Madurai & Tamil Nadu
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeader title="Loved by sellers across Tamil Nadu" subtitle="Real feedback from Genie customers." />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {reviews.slice(0, 3).map((r, idx) => {
-              const customerName = r.customerName || (r as any).name || 'Verified Customer';
-              const comment = r.comment || (r as any).quote || 'Fast, reliable doorstep buyback experience!';
-              const deviceModel = r.deviceModel || (r as any).device || 'Smartphone';
-              const city = r.city || 'Tamil Nadu';
+              const name = r.customerName || 'Verified customer';
               const amount = (r as any).amount;
-
               return (
-                <div
-                  key={r._id || `review-${customerName}-${idx}`}
-                  className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-card space-y-3 flex flex-col justify-between hover:shadow-card-hover transition-all"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3.5 h-3.5 ${
-                              i < (r.rating || 5)
-                                ? 'text-amber-500 fill-amber-500'
-                                : 'text-slate-200'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-extrabold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                        Verified Seller
-                      </span>
+                <figure key={r._id || `review-${idx}`} className="surface flex flex-col justify-between gap-4 p-5">
+                  <div>
+                    <div className="flex gap-0.5" aria-label={`${r.rating || 5} out of 5 stars`}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`h-4 w-4 ${i < (r.rating || 5) ? 'fill-amber-400 text-amber-400' : 'text-slate-200 dark:text-neutral-800'}`} />
+                      ))}
                     </div>
-
-                    <p className="text-xs text-slate-700 leading-relaxed italic">
-                      "{comment}"
-                    </p>
+                    <blockquote className="mt-3 text-sm leading-relaxed text-slate-700 dark:text-neutral-300">“{r.comment}”</blockquote>
                   </div>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-rose-600 to-violet-600 text-white font-black text-xs flex items-center justify-center shadow-2xs">
-                        {customerName[0]?.toUpperCase() || 'U'}
-                      </div>
-                      <div>
-                        <p className="font-extrabold text-slate-900 leading-tight">{customerName}</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">📍 {city}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[11px] font-bold text-slate-700 block">
-                        {deviceModel}
+                  <figcaption className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs dark:border-neutral-900">
+                    <span className="flex items-center gap-2.5">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-pink-500 text-xs font-bold text-white">
+                        {name.charAt(0).toUpperCase()}
                       </span>
-                      {amount && (
-                        <span className="text-[10px] font-extrabold text-rose-600">
-                          ₹{amount.toLocaleString('en-IN')} paid
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                      <span>
+                        <span className="block font-semibold text-ink dark:text-white">{name}</span>
+                        <span className="block text-slate-500 dark:text-neutral-500">{r.city || 'Tamil Nadu'}</span>
+                      </span>
+                    </span>
+                    <span className="text-right">
+                      <span className="block font-medium text-slate-700 dark:text-neutral-300">{r.deviceModel}</span>
+                      {amount && <span className="block font-semibold text-emerald-600 dark:text-emerald-400">₹{Number(amount).toLocaleString('en-IN')} paid</span>}
+                    </span>
+                  </figcaption>
+                </figure>
               );
             })}
           </div>

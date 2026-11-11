@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { PageLoadingProvider } from './context/PageLoadingContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LocationProvider } from './context/LocationContext';
 import { Layout } from './components/layout/Layout';
 import { ScrollToTop } from './components/common/ScrollToTop';
 
@@ -16,6 +17,8 @@ import { BuyStorePage } from './pages/buy/BuyStorePage';
 import { ProductDetailPage } from './pages/buy/ProductDetailPage';
 import { TrackOrderPage } from './pages/tracking/TrackOrderPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
+import { TermsPage } from './pages/legal/TermsPage';
+import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +34,7 @@ export const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
+          <LocationProvider>
           <CartProvider>
             <BrowserRouter>
               <PageLoadingProvider>
@@ -44,12 +48,15 @@ export const App: React.FC = () => {
                     <Route path="buy/:id" element={<ProductDetailPage />} />
                     <Route path="track" element={<TrackOrderPage />} />
                     <Route path="profile" element={<ProfilePage />} />
+                    <Route path="terms" element={<TermsPage />} />
+                    <Route path="privacy" element={<PrivacyPolicyPage />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Route>
                 </Routes>
               </PageLoadingProvider>
             </BrowserRouter>
           </CartProvider>
+          </LocationProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

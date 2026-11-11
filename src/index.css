@@ -22,12 +22,28 @@
     color: #f5f5f5 !important;
   }
 
-  /* True OLED Pure Black Elevational Hierarchy (High Contrast, Never Murky Blue/Slate) */
+  /* Prevent iOS from zooming into small form fields (zoom stays enabled for accessibility) */
+  @media (max-width: 640px) {
+    input:not([type='checkbox']):not([type='radio']),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* True OLED black elevation hierarchy for legacy slate classes */
   html.dark .bg-white {
     background-color: #0a0a0a !important;
   }
 
-  html.dark .bg-slate-50 {
+  html.dark .bg-white\/95,
+  html.dark .bg-white\/90,
+  html.dark .bg-white\/80 {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+  }
+
+  html.dark .bg-slate-50,
+  html.dark .bg-slate-50\/80 {
     background-color: #000000 !important;
   }
 
@@ -105,6 +121,52 @@
   }
 }
 
+@layer components {
+  /* Primary call-to-action: warm Genie gold (turncash-style "Check exact value") */
+  .btn-genie {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold text-[#1a1033]
+      bg-gradient-to-b from-amber-300 to-amber-500 shadow-cta transition-all duration-200
+      hover:from-amber-300 hover:to-amber-400 hover:-translate-y-0.5 active:translate-y-0
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+      focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/50;
+  }
+
+  /* Secondary outline button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold
+      border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50
+      dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:bg-neutral-900
+      transition focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-300/40;
+  }
+
+  /* Selectable chip (variant / yes-no). Selected state = deep ink like the reference design */
+  .chip {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-medium
+      transition-all duration-150 select-none
+      border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:shadow-soft
+      dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:hover:border-neutral-700;
+  }
+
+  .chip-selected {
+    @apply border-ink bg-ink text-white shadow-soft hover:border-ink
+      dark:border-amber-400 dark:bg-amber-400 dark:text-black dark:hover:border-amber-400;
+  }
+
+  /* Neutral surface card used across the sell flow */
+  .surface {
+    @apply rounded-3xl border border-slate-200/80 bg-white shadow-soft
+      dark:border-neutral-800 dark:bg-neutral-950;
+  }
+
+  /* Brand logo tile: always light so dark logos (Apple, Sony…) stay visible in dark mode */
+  .logo-tile {
+    background-color: #ffffff;
+  }
+  html.dark .logo-tile {
+    background-color: #f4f4f5;
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -121,44 +183,98 @@
   background: rgba(100, 116, 139, 0.6);
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Safe area bottom padding for mobile sticky navigation */
 .safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 8px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
 }
 
-/* Animated Genie Brand Logo matching mobile app splash & identity */
-@keyframes genieFloat {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
+/* ------------------------------------------------------------------
+   Genie logo: emblem rises out like a genie, the word expands letter
+   by letter, then the smile line draws itself. Static (no floating)
+   once the sequence finishes.
+   ------------------------------------------------------------------ */
+.genie-logo__emblem,
+.genie-logo__letter,
+.genie-logo__smile-path {
+  will-change: auto;
+}
+
+.genie-logo[data-play='true'] .genie-logo__emblem {
+  animation: genieEmerge 760ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+.genie-logo[data-play='true'] .genie-logo__letter {
+  animation: genieLetter 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  animation-delay: calc(480ms + var(--i) * 70ms);
+}
+
+.genie-logo[data-play='true'] .genie-logo__smile-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: genieSmile 520ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: 1050ms;
+}
+
+@keyframes genieEmerge {
+  0% {
+    opacity: 0;
+    transform: translateY(45%) scale(0.15) rotate(-28deg);
+    filter: blur(6px);
   }
-  50% {
-    transform: translateY(-3.5px) rotate(1deg);
+  55% {
+    opacity: 1;
+    transform: translateY(-6%) scale(1.1) rotate(6deg);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+    filter: blur(0);
   }
 }
 
-@keyframes genieGlow {
-  0%, 100% {
-    filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.25)) drop-shadow(0 0 2px rgba(236, 72, 153, 0.2));
+@keyframes genieLetter {
+  /* transform-only, so neighbouring navbar items never shift while it plays */
+  0% {
+    opacity: 0;
+    transform: translateX(-0.45em) scaleX(0.2);
   }
-  50% {
-    filter: drop-shadow(0 4px 10px rgba(245, 158, 11, 0.5)) drop-shadow(0 0 10px rgba(236, 72, 153, 0.6));
+  70% {
+    opacity: 1;
+    transform: translateX(0.04em) scaleX(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
   }
 }
 
-.animate-genie-logo {
-  animation: genieFloat 3.2s ease-in-out infinite, genieGlow 2.8s ease-in-out infinite;
-  will-change: transform, filter;
-  -webkit-user-drag: none;
-  user-select: none;
-  -webkit-user-select: none;
+@keyframes genieSmile {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .genie-logo[data-play='true'] .genie-logo__emblem,
+  .genie-logo[data-play='true'] .genie-logo__letter,
+  .genie-logo[data-play='true'] .genie-logo__smile-path {
+    animation: none !important;
+    stroke-dashoffset: 0;
+  }
 }
 
 /* Prevent logo dragging and context menu downloads */
-img[alt="Genie"],
-img[src*="genie"] {
+img[alt='Genie'],
+img[src*='genie'] {
   -webkit-user-drag: none;
   user-select: none;
   -webkit-user-select: none;
 }
-
-

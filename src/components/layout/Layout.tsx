@@ -5,6 +5,7 @@ import { MobileNav } from './MobileNav';
 import { Footer } from './Footer';
 import { PromotionalPopup } from '../common/PromotionalPopup';
 import { AuthModal } from '../common/AuthModal';
+import { LocationPicker, LocationPrompt } from '../location/LocationPicker';
 import { usePageLoading } from '../../context/PageLoadingContext';
 
 export const Layout: React.FC = () => {
@@ -21,6 +22,8 @@ export const Layout: React.FC = () => {
       <MobileNav />
       <PromotionalPopup />
       <AuthModal />
+      <LocationPicker />
+      <LocationPrompt />
     </div>
   );
 };

@@ -20,6 +20,13 @@ export default {
           pink: '#ec4899',
           dark: '#0f0f1a',
         },
+        // Deep plum "ink" used for selected states & headings (turncash-style dark chips)
+        ink: {
+          DEFAULT: '#1f1147',
+          soft: '#2d1b69',
+          50: '#f5f3fb',
+          100: '#ebe7f6',
+        },
         revoo: {
           50: '#fffbeb',
           100: '#fef3c7',
@@ -64,6 +71,8 @@ export default {
         'brand-sm': '0 4px 14px rgba(225, 29, 72, 0.25)',
         'card': '0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 1px 4px -1px rgba(0, 0, 0, 0.03)',
         'card-hover': '0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04)',
+        'cta': '0 10px 24px -8px rgba(245, 158, 11, 0.55)',
+        'soft': '0 1px 2px rgba(16, 12, 40, 0.04), 0 4px 16px -6px rgba(16, 12, 40, 0.08)',
       },
     },
   },

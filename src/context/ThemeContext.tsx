@@ -11,32 +11,46 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/**
+ * The site always starts in light mode. Dark mode is used only when the visitor has explicitly
+ * picked it with the toggle (stored under THEME_CHOICE_KEY). The OS colour-scheme preference and
+ * the old auto-saved `genie_theme` key are intentionally ignored.
+ */
+export const THEME_CHOICE_KEY = 'genie_theme_choice';
+
+const readChoice = (): Theme => {
+  try {
+    return localStorage.getItem(THEME_CHOICE_KEY) === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+};
+
+const saveChoice = (theme: Theme) => {
+  try {
+    localStorage.setItem(THEME_CHOICE_KEY, theme);
+  } catch {
+    // Storage unavailable (private mode); the choice simply won't persist.
+  }
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('genie_theme');
-    if (saved === 'dark' || saved === 'light') return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  const [theme, setThemeState] = useState<Theme>(readChoice);
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.style.colorScheme = 'dark';
-    } else {
-      root.classList.remove('dark');
-      root.style.colorScheme = 'light';
-    }
-    localStorage.setItem('genie_theme', theme);
+    root.classList.toggle('dark', theme === 'dark');
+    root.style.colorScheme = theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
   }, [theme]);
 
-  const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
   const setTheme = (t: Theme) => {
+    saveChoice(t);
     setThemeState(t);
   };
+
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, isDark: theme === 'dark' }}>
@@ -52,4 +66,3 @@ export const useTheme = () => {
   }
   return context;
 };
-

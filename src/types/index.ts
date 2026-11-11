@@ -11,11 +11,15 @@ export interface DeviceVariant {
   _id?: string;
   capacity: string;
   priceModifier: number;
+  ram?: string;
+  storage?: string;
+  /** Top-condition "Get up to" price for this variant (basePrice + priceModifier). */
+  price?: number;
 }
 
 export interface SmartphoneModel {
   _id: string;
-  brandId: string;
+  brandId: string | { _id: string; name: string; logoUrl?: string };
   name: string;
   slug: string;
   releaseYear: number;
@@ -23,6 +27,17 @@ export interface SmartphoneModel {
   basePrice: number;
   variants?: DeviceVariant[];
   isPublished?: boolean;
+  /** Best variant, top condition: the "Get up to" price shown on listings. */
+  maxPrice?: number;
+  minPrice?: number;
+  variantCount?: number;
+}
+
+export interface ModelWithVariants {
+  model: SmartphoneModel;
+  variants: DeviceVariant[];
+  maxPrice: number;
+  minPrice: number;
 }
 
 export interface Banner {

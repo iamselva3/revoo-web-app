@@ -16,18 +16,15 @@ export const PageLoadingSkeleton: React.FC<PageLoadingSkeletonProps> = ({
     <div className="w-full flex-1 min-h-[75vh] flex flex-col items-center justify-center px-4 py-12 animate-fade-in max-w-6xl mx-auto">
       {/* Genie Mascot / Emblem Spinner */}
       <div className="relative mb-6 flex items-center justify-center">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-rose-500/20 via-pink-500/10 to-violet-500/20 blur-xl absolute animate-pulse" />
-        <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200/80 shadow-card flex items-center justify-center p-2.5 relative z-10">
+        <div className="w-16 h-16 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 shadow-soft flex items-center justify-center p-2.5 relative z-10">
           <img
-            src="/genie_logo_light.png"
+            src="/genie_emblem.png"
             alt="Genie"
-            className="w-full h-full object-contain animate-genie-logo"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/genie_logo_transparent.png';
-            }}
+            draggable={false}
+            className="w-full h-full object-contain animate-pulse-subtle"
           />
         </div>
-        <div className="absolute -bottom-1 -right-1 z-20 w-6 h-6 rounded-full bg-gradient-to-r from-rose-600 to-violet-600 text-white flex items-center justify-center shadow-brand-sm">
+        <div className="absolute -bottom-1 -right-1 z-20 w-6 h-6 rounded-full bg-amber-400 text-[#1a1033] flex items-center justify-center shadow-cta">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
         </div>
       </div>

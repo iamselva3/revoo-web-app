@@ -12,27 +12,32 @@ export const ThemeToggle: React.FC<{ className?: string; showLabel?: boolean }> 
     <button
       type="button"
       onClick={toggleTheme}
-      title={isDark ? 'Switch to Light Mode' : 'Switch to Pure Black Dark Mode'}
-      className={`inline-flex items-center gap-2 p-2 rounded-2xl transition-all duration-200 border cursor-pointer select-none ${
-        isDark
-          ? 'bg-black/80 hover:bg-neutral-900 border-neutral-800 text-amber-400 hover:border-amber-400/30 shadow-xs'
-          : 'bg-slate-100 hover:bg-slate-200/80 border-slate-200 text-slate-700 shadow-2xs'
-      } ${className}`}
-      aria-label="Toggle pure black theme"
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-full border px-2.5 transition-colors duration-200
+        border-slate-200 bg-white text-ink hover:bg-ink-50
+        dark:border-neutral-800 dark:bg-neutral-900 dark:text-amber-300 dark:hover:bg-neutral-800
+        focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/40 ${className}`}
     >
-      <div className="relative w-4 h-4 flex items-center justify-center">
-        {isDark ? (
-          <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 hover:rotate-45" />
-        ) : (
-          <Moon className="w-4 h-4 text-slate-700 transition-transform duration-300 -rotate-12 hover:rotate-0" />
-        )}
-      </div>
+      <span className="relative h-[18px] w-[18px]">
+        <Sun
+          className={`absolute inset-0 h-[18px] w-[18px] transition-all duration-300 ${
+            isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-50 opacity-0'
+          }`}
+          strokeWidth={2.2}
+        />
+        <Moon
+          className={`absolute inset-0 h-[18px] w-[18px] transition-all duration-300 ${
+            isDark ? 'rotate-90 scale-50 opacity-0' : 'rotate-0 scale-100 opacity-100'
+          }`}
+          strokeWidth={2.2}
+        />
+      </span>
       {showLabel && (
-        <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
-          {isDark ? 'Light Mode' : 'Dark Mode'}
+        <span className="pr-1 text-xs font-semibold text-ink dark:text-neutral-200">
+          {isDark ? 'Light mode' : 'Dark mode'}
         </span>
       )}
     </button>
   );
 };
-
