@@ -106,7 +106,9 @@ export const RequestDetailsPanel: React.FC<RequestDetailsPanelProps> = ({ reques
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-neutral-900 sm:px-6">
           <div className="min-w-0">
-            <p className="font-mono text-xs text-slate-500 dark:text-neutral-400">{r.requestNumber}</p>
+            <p className="font-mono text-xs text-slate-500 dark:text-neutral-400">
+              {r.requestNumber ? r.requestNumber.replace(/^REV-/i, 'GENIE-') : ''}
+            </p>
             <h2 id="request-details-title" className="mt-0.5 truncate text-lg font-bold text-ink dark:text-white">
               Pickup details
             </h2>
@@ -259,7 +261,7 @@ export const RequestDetailsPanel: React.FC<RequestDetailsPanelProps> = ({ reques
               Call +91 94420 54321
             </a>{' '}
             or{' '}
-            <a href={`mailto:support@genie.in?subject=${encodeURIComponent(`Pickup ${r.requestNumber}`)}`} className="font-semibold text-ink underline-offset-2 hover:underline dark:text-white">
+            <a href={`mailto:support@genie.in?subject=${encodeURIComponent(`Pickup ${r.requestNumber ? r.requestNumber.replace(/^REV-/i, 'GENIE-') : ''}`)}`} className="font-semibold text-ink underline-offset-2 hover:underline dark:text-white">
               email support
             </a>
             .

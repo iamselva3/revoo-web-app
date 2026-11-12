@@ -181,7 +181,7 @@ export const DoorstepPickupPage: React.FC = () => {
             Doorstep Pickup Confirmed!
           </h1>
           <p className="text-xs text-slate-500">
-            Booking ID: <strong className="text-slate-900 font-mono">{successBooking.requestNumber || 'REV-89421'}</strong>
+            Booking ID: <strong className="text-slate-900 font-mono">{successBooking.requestNumber ? successBooking.requestNumber.replace(/^REV-/i, 'GENIE-') : 'GENIE-89421'}</strong>
           </p>
         </div>
 

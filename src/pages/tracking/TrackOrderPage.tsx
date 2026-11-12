@@ -164,7 +164,9 @@ export const TrackOrderPage: React.FC = () => {
                 Booking Reference
               </span>
               <h2 className="text-lg font-black text-slate-900 font-mono">
-                {selectedRequest.requestNumber || selectedRequest._id}
+                {selectedRequest.requestNumber
+                  ? selectedRequest.requestNumber.replace(/^REV-/i, 'GENIE-')
+                  : selectedRequest._id}
               </h2>
             </div>
 
@@ -286,7 +288,9 @@ export const TrackOrderPage: React.FC = () => {
             >
               <div>
                 <p className="font-bold text-xs text-slate-900">{r.device?.modelName}</p>
-                <p className="text-[11px] text-slate-400 font-mono">{r.requestNumber}</p>
+                <p className="text-[11px] text-slate-400 font-mono">
+                  {r.requestNumber ? r.requestNumber.replace(/^REV-/i, 'GENIE-') : ''}
+                </p>
               </div>
               <div className="text-right">
                 <span className="text-xs font-black text-rose-600">

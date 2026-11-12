@@ -213,7 +213,9 @@ const RequestCard: React.FC<{ request: BuybackRequest; onOpen: () => void }> = (
 
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[11px] text-slate-500 dark:text-neutral-400">{r.requestNumber}</span>
+          <span className="font-mono text-[11px] text-slate-500 dark:text-neutral-400">
+            {r.requestNumber ? r.requestNumber.replace(/^REV-/i, 'GENIE-') : ''}
+          </span>
           <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${TONE_CLASSES[meta.tone]}`}>{meta.label}</span>
         </span>
         <span className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug text-ink dark:text-white">
