@@ -53,20 +53,28 @@ export const DeviceImage: React.FC<{ model: Pick<SmartphoneModel, 'imageUrl' | '
   model,
   className = '',
 }) => {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [model.imageUrl, model.slug]);
+  // Bundled device photos are served by the website itself (fast, deployed with the site);
+  // anything else, or a miss, falls back to the API host.
+  const candidates = React.useMemo(() => {
+    const list: string[] = [];
+    if (model.imageUrl?.startsWith('/uploads/')) list.push(model.imageUrl);
+    if (model.imageUrl || model.slug) list.push(resolveImageUrl(model.imageUrl, model.slug));
+    return Array.from(new Set(list));
+  }, [model.imageUrl, model.slug]);
+  const [index, setIndex] = useState(0);
+  useEffect(() => setIndex(0), [candidates]);
 
   // No image and no slug: show the neutral illustration rather than an unrelated stock phone
-  if (failed || (!model.imageUrl && !model.slug)) {
+  if (index >= candidates.length) {
     return <ConditionArt kind="back-clean" className={className} />;
   }
   return (
     <img
-      src={resolveImageUrl(model.imageUrl, model.slug)}
+      src={candidates[index]}
       alt={model.name}
       loading="lazy"
       draggable={false}
-      onError={() => setFailed(true)}
+      onError={() => setIndex((i) => i + 1)}
       className={`object-contain ${className}`}
     />
   );
