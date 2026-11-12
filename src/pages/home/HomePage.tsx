@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, BadgeIndianRupee, ChevronRight, ShieldCheck, Star, Truck, MapPin } from 'lucide-react';
 import { catalogueApi } from '../../api/catalogue';
-import { resolveImageUrl } from '../../api/client';
-import { Brand, Banner, CustomerReview } from '../../types';
+import { Brand, CustomerReview } from '../../types';
 import { usePageLoading } from '../../context/PageLoadingContext';
 import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import { BrandLogo } from '../../components/brand/BrandLogo';
@@ -43,8 +42,6 @@ const SectionHeader: React.FC<{ title: string; subtitle?: string; action?: React
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { setIsPageLoading } = usePageLoading();
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [reviews, setReviews] = useState<CustomerReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,9 +49,8 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     setIsPageLoading(true);
-    Promise.all([catalogueApi.getBanners(), catalogueApi.getBrands().catch(() => []), catalogueApi.getReviews('sell')])
-      .then(([bannerData, brandData, reviewData]) => {
-        setBanners(bannerData);
+    Promise.all([catalogueApi.getBrands().catch(() => []), catalogueApi.getReviews('sell')])
+      .then(([brandData, reviewData]) => {
         setBrands(brandData);
         setReviews(reviewData);
       })
@@ -65,12 +61,6 @@ export const HomePage: React.FC = () => {
       });
     return () => setIsPageLoading(false);
   }, [setIsPageLoading]);
-
-  useEffect(() => {
-    if (banners.length <= 1) return;
-    const id = setInterval(() => setActiveBannerIdx((p) => (p + 1) % banners.length), 5000);
-    return () => clearInterval(id);
-  }, [banners.length]);
 
   useEffect(() => {
     const id = setInterval(() => setWordIdx((p) => (p + 1) % HERO_WORDS.length), 2200);
@@ -84,80 +74,37 @@ export const HomePage: React.FC = () => {
   return (
     <div className="space-y-14 pb-20 sm:space-y-20">
       {/* 1. Hero */}
-      {banners.length > 0 ? (
-        <section className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
-          <div className="relative h-[260px] overflow-hidden rounded-3xl bg-ink sm:h-[360px] lg:h-[420px]">
-            {banners.map((b, idx) => (
-              <div
-                key={b._id || `banner-${idx}`}
-                className={`absolute inset-0 transition-opacity duration-700 ${idx === activeBannerIdx ? 'z-10 opacity-100' : 'pointer-events-none z-0 opacity-0'}`}
-                aria-hidden={idx !== activeBannerIdx}
-              >
-                <img
-                  src={resolveImageUrl(b.imageUrl)}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  onError={(e) => ((e.target as HTMLElement).style.display = 'none')}
-                />
-                <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/75 via-black/30 to-transparent sm:items-center sm:bg-gradient-to-r">
-                  <div className="max-w-xl space-y-3 p-6 sm:p-12">
-                    <h1 className="text-2xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">{b.title}</h1>
-                    {b.subtitle && <p className="line-clamp-2 text-sm text-white/80">{b.subtitle}</p>}
-                    <Link to={b.ctaLink || '/sell'} className="btn-genie !inline-flex">
-                      {b.ctaText || 'Get your price'} <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {banners.length > 1 && (
-              <div className="absolute bottom-4 right-5 z-20 flex gap-1.5">
-                {banners.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setActiveBannerIdx(idx)}
-                    aria-label={`Show slide ${idx + 1}`}
-                    className={`h-1.5 rounded-full transition-all ${idx === activeBannerIdx ? 'w-7 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white/80'}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      ) : (
-        <section className="border-b border-slate-100 bg-gradient-to-br from-amber-50 via-white to-violet-50 dark:border-neutral-900 dark:from-neutral-950 dark:via-black dark:to-neutral-950">
-          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
-            <div>
-              <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/20 dark:bg-neutral-900 dark:text-amber-300">
-                <MapPin className="h-3.5 w-3.5" /> Free doorstep pickup across Tamil Nadu
-              </p>
-              <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:text-5xl">
-                Sell your old{' '}
-                <span key={wordIdx} className="inline-block animate-slide-up bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 bg-clip-text text-transparent">
-                  {HERO_WORDS[wordIdx]}
-                </span>
-                <br />
-                for cash.
-              </h1>
-              <p className="mt-4 max-w-md text-base text-slate-600 dark:text-neutral-300">
-                Get your exact price in 60 seconds, a free pickup from your door, and payment before our agent leaves.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link to="/sell" className="btn-genie !text-base">
-                  Get your price <ArrowRight className="h-5 w-5" />
-                </Link>
-                <Link to="/track" className="btn-ghost">
-                  Track a pickup
-                </Link>
-              </div>
-            </div>
-            <div className="hidden justify-center lg:flex">
-              <CategoryArt kind="phone" className="h-80 w-auto" />
+      <section className="border-b border-slate-100 bg-gradient-to-br from-amber-50 via-white to-violet-50 dark:border-neutral-900 dark:from-neutral-950 dark:via-black dark:to-neutral-950">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
+          <div>
+            <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/20 dark:bg-neutral-900 dark:text-amber-300">
+              <MapPin className="h-3.5 w-3.5" /> Free doorstep pickup across Tamil Nadu
+            </p>
+            <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:text-5xl">
+              Sell your old{' '}
+              <span key={wordIdx} className="inline-block animate-slide-up bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 bg-clip-text text-transparent">
+                {HERO_WORDS[wordIdx]}
+              </span>
+              <br />
+              for cash.
+            </h1>
+            <p className="mt-4 max-w-md text-base text-slate-600 dark:text-neutral-300">
+              Get your exact price in 60 seconds, a free pickup from your door, and payment before our agent leaves.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link to="/sell" className="btn-genie !text-base">
+                Get your price <ArrowRight className="h-5 w-5" />
+              </Link>
+              <Link to="/track" className="btn-ghost">
+                Track a pickup
+              </Link>
             </div>
           </div>
-        </section>
-      )}
+          <div className="hidden justify-center lg:flex">
+            <CategoryArt kind="phone" className="h-80 w-auto" />
+          </div>
+        </div>
+      </section>
 
       {/* 2. Sell your gadgets (category cards) */}
       <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
