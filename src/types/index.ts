@@ -25,6 +25,7 @@ export interface SmartphoneModel {
   releaseYear: number;
   imageUrl?: string;
   basePrice: number;
+  displayOrder?: number;
   variants?: DeviceVariant[];
   isPublished?: boolean;
   /** Best variant, top condition: the "Get up to" price shown on listings. */

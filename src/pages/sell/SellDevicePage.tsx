@@ -98,7 +98,8 @@ export const SellDevicePage: React.FC = () => {
       .then((data) => {
         if (cancelled) return;
         if (data && data.length > 0) {
-          setModels(data);
+          const sorted = [...data].sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
+          setModels(sorted);
         } else {
           const fallback = FALLBACK_BRAND_MODELS[selectedBrand.slug.toLowerCase()] || [];
           setModels(fallback);
@@ -280,10 +281,10 @@ export const SellDevicePage: React.FC = () => {
       ? 'model'
       : 'brand'
     : step === 'quote' && quote
-          ? 'quote'
-          : step === 'evaluate' && model && selectedVariant
-            ? 'evaluate'
-            : 'variant';
+      ? 'quote'
+      : step === 'evaluate' && model && selectedVariant
+        ? 'evaluate'
+        : 'variant';
 
   const crumbs: Array<{ label: string; onClick?: () => void }> = [
     { label: `Sell ${CATEGORY_NOUN[category] || 'device'}`, onClick: () => go({ brand: null, model: null, variant: null, step: null }) },
