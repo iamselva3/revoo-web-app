@@ -261,14 +261,15 @@ export const buildSummary = (a: EvaluationAnswers, modelName?: string): SummaryG
   const faults = functionalIssuesFor(modelName).filter((f) => a.hardwareFaults[f.key]).map((f) => f.label);
   if (faults.length) groups.push({ title: 'Functional issues', items: faults });
 
+  // Same order as the Warranty condition step: accessories, then bill, then device age
+  const accessories = ACCESSORIES.filter((x) => a[x.key]).map((x) => x.label);
+  if (accessories.length) groups.push({ title: 'Accessories', items: accessories });
+
   const warranty: string[] = [];
   if (a.hasValidBill !== null) warranty.push(a.hasValidBill ? 'Valid bill with same IMEI' : 'No valid bill');
   const age = DEVICE_AGE_OPTIONS.find((o) => o.id === a.deviceAge)?.label;
   if (age) warranty.push(`Device age: ${age}`);
   if (warranty.length) groups.push({ title: 'Warranty', items: warranty });
-
-  const accessories = ACCESSORIES.filter((x) => a[x.key]).map((x) => x.label);
-  if (accessories.length) groups.push({ title: 'Accessories', items: accessories });
 
   return groups;
 };
