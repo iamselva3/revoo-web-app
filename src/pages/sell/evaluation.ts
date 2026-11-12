@@ -4,7 +4,7 @@ import { ConditionArtKind } from '../../components/sell/ConditionArt';
 export const EVAL_TABS = [
   { id: 'overall', label: 'Overall condition' },
   { id: 'physical', label: 'Physical condition' },
-  { id: 'functional', label: 'Functional & Accessories' },
+  { id: 'functional', label: 'Functional condition' },
   { id: 'warranty', label: 'Warranty condition' },
 ] as const;
 
@@ -37,13 +37,13 @@ export interface EvaluationAnswers {
   touchGlassCondition: string | null;
   backPanelCondition: string | null;
   sidePanelCondition: string | null;
-  // Functional & accessories
+  // Functional
   hardwareFaults: Partial<Record<HardwareFaultKey, boolean>>;
-  hasOriginalCharger: boolean;
-  hasOriginalBox: boolean;
-  // Warranty
+  // Warranty & accessories
   hasValidBill: boolean | null;
   deviceAge: string | null;
+  hasOriginalCharger: boolean;
+  hasOriginalBox: boolean;
 }
 
 export const emptyAnswers = (): EvaluationAnswers => ({
@@ -230,9 +230,12 @@ export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => 
   }
 };
 
-/** Tabs that apply: a phone that doesn't power on skips the physical inspection. */
+/**
+ * Tabs that apply: a phone that doesn't power on skips the physical and functional checks and goes
+ * straight to warranty & accessories.
+ */
 export const applicableTabs = (a: EvaluationAnswers): EvalTabId[] =>
-  a.isPhoneWorking === false ? ['overall', 'functional', 'warranty'] : ['overall', 'physical', 'functional', 'warranty'];
+  a.isPhoneWorking === false ? ['overall', 'warranty'] : ['overall', 'physical', 'functional', 'warranty'];
 
 export interface SummaryGroup {
   title: string;
@@ -258,14 +261,14 @@ export const buildSummary = (a: EvaluationAnswers, modelName?: string): SummaryG
   const faults = functionalIssuesFor(modelName).filter((f) => a.hardwareFaults[f.key]).map((f) => f.label);
   if (faults.length) groups.push({ title: 'Functional issues', items: faults });
 
-  const accessories = ACCESSORIES.filter((x) => a[x.key]).map((x) => x.label);
-  if (accessories.length) groups.push({ title: 'Accessories', items: accessories });
-
   const warranty: string[] = [];
   if (a.hasValidBill !== null) warranty.push(a.hasValidBill ? 'Valid bill with same IMEI' : 'No valid bill');
   const age = DEVICE_AGE_OPTIONS.find((o) => o.id === a.deviceAge)?.label;
   if (age) warranty.push(`Device age: ${age}`);
   if (warranty.length) groups.push({ title: 'Warranty', items: warranty });
+
+  const accessories = ACCESSORIES.filter((x) => a[x.key]).map((x) => x.label);
+  if (accessories.length) groups.push({ title: 'Accessories', items: accessories });
 
   return groups;
 };

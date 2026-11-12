@@ -289,45 +289,25 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                 </div>
               ))}
 
-            {/* ---------- Functional & accessories ---------- */}
+            {/* ---------- Functional condition ---------- */}
             {active === 'functional' && (
-              <>
-                {answers.isPhoneWorking !== false && (
-                  <div>
-                    <SectionHeading title="Select all issues identified in your phone" subtitle="Skip this if everything works fine." />
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                      {functionalIssuesFor(model.name).map((issue) => (
-                        <OptionCard
-                          key={issue.key}
-                          multi
-                          selected={Boolean(answers.hardwareFaults[issue.key])}
-                          onClick={() =>
-                            set('hardwareFaults', { ...answers.hardwareFaults, [issue.key]: !answers.hardwareFaults[issue.key] })
-                          }
-                          art={<ConditionArt kind={issue.art} className="h-full w-auto" />}
-                          label={issue.label}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <SectionHeading title="Original accessories you have" subtitle="Each one adds a little to your price." />
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                    {ACCESSORIES.map((acc) => (
-                      <OptionCard
-                        key={acc.key}
-                        multi
-                        selected={answers[acc.key]}
-                        onClick={() => set(acc.key, !answers[acc.key])}
-                        art={<ConditionArt kind={acc.art} className="h-full w-auto" />}
-                        label={acc.label}
-                        hint={acc.hint}
-                      />
-                    ))}
-                  </div>
+              <div>
+                <SectionHeading title="Select all issues identified in your phone" subtitle="Skip this if everything works fine." />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                  {functionalIssuesFor(model.name).map((issue) => (
+                    <OptionCard
+                      key={issue.key}
+                      multi
+                      selected={Boolean(answers.hardwareFaults[issue.key])}
+                      onClick={() =>
+                        set('hardwareFaults', { ...answers.hardwareFaults, [issue.key]: !answers.hardwareFaults[issue.key] })
+                      }
+                      art={<ConditionArt kind={issue.art} className="h-full w-auto" />}
+                      label={issue.label}
+                    />
+                  ))}
                 </div>
-              </>
+              </div>
             )}
 
             {/* ---------- Warranty condition ---------- */}
@@ -369,6 +349,23 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <SectionHeading title="Original accessories you have" subtitle="Select all that you'll hand over. Each one adds a little to your price." />
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                    {ACCESSORIES.map((acc) => (
+                      <OptionCard
+                        key={acc.key}
+                        multi
+                        selected={answers[acc.key]}
+                        onClick={() => set(acc.key, !answers[acc.key])}
+                        art={<ConditionArt kind={acc.art} className="h-full w-auto" />}
+                        label={acc.label}
+                        hint={acc.hint}
+                      />
+                    ))}
+                  </div>
+                </div>
 
                 {submitError && (
                   <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" role="alert">
