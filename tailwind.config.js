@@ -49,6 +49,7 @@ export default {
         'fade-in': 'fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'slide-up': 'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         'pulse-subtle': 'pulseSubtle 2.5s infinite ease-in-out',
+        drift: 'drift 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -62,6 +63,11 @@ export default {
         pulseSubtle: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
           '50%': { opacity: '0.85', transform: 'scale(1.02)' },
+        },
+        // Gentle bob for the hero's floating info cards
+        drift: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
         },
       },
       boxShadow: {
