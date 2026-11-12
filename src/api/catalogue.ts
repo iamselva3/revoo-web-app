@@ -30,7 +30,13 @@ export const catalogueApi = {
     const res = await apiClient.get(`/catalogue/brands/${brandId}/models`, {
       params: category ? { category } : undefined,
     });
-    return res.data?.data || [];
+    const models: SmartphoneModel[] = res.data?.data || [];
+    // Keep the curated list order (displayOrder) even if an older API sorts differently;
+    // models without a position keep their API order after the listed ones.
+    return models
+      .map((m, i) => ({ m, i }))
+      .sort((a, b) => (a.m.displayOrder ?? 1e9) - (b.m.displayOrder ?? 1e9) || a.i - b.i)
+      .map(({ m }) => m);
   },
 
   /** Model + its variants, each variant carrying its top-condition `price`. */
