@@ -6,7 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import { catalogueApi } from '../../api/catalogue';
 import { usePageLoading } from '../../context/PageLoadingContext';
 import { Brand, DeviceVariant, ModelWithVariants, SmartphoneModel } from '../../types';
-import { BrandPicker, CATEGORY_NOUN, SELL_CATEGORIES } from './components/BrandPicker';
+import { BrandPicker, CATEGORY_NOUN, SELL_CATEGORIES, EXACT_PHONE_BRANDS } from './components/BrandPicker';
+import { FALLBACK_BRAND_MODELS, findFallbackModel } from './fallbackModels';
 import { ModelPicker } from './components/ModelPicker';
 import { VariantPicker } from './components/VariantPicker';
 import { EvaluationFlow } from './components/EvaluationFlow';
@@ -69,7 +70,20 @@ export const SellDevicePage: React.FC = () => {
   const selectedBrand = useMemo(() => {
     if (!brandParam) return null;
     const p = brandParam.toLowerCase();
-    return brands.find((b) => b.slug === p || b._id === brandParam || b.name.toLowerCase() === p) || null;
+    const found = brands.find((b) => b.slug.toLowerCase() === p || b._id === brandParam || b.name.toLowerCase() === p);
+    if (found) return found;
+    const fallback = EXACT_PHONE_BRANDS.find((b) => b.slug.toLowerCase() === p || b.name.toLowerCase() === p);
+    if (fallback) {
+      return {
+        _id: fallback.slug,
+        name: fallback.name,
+        slug: fallback.slug,
+        logoUrl: fallback.logoUrl,
+        isActive: true,
+        displayOrder: 1,
+      };
+    }
+    return null;
   }, [brands, brandParam]);
 
   useEffect(() => {
@@ -81,13 +95,25 @@ export const SellDevicePage: React.FC = () => {
     setIsLoadingModels(true);
     catalogueApi
       .getModelsByBrand(selectedBrand._id, category)
-      .then((data) => !cancelled && setModels(data))
-      .catch(() => !cancelled && setModels([]))
+      .then((data) => {
+        if (cancelled) return;
+        if (data && data.length > 0) {
+          setModels(data);
+        } else {
+          const fallback = FALLBACK_BRAND_MODELS[selectedBrand.slug.toLowerCase()] || [];
+          setModels(fallback);
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const fallback = FALLBACK_BRAND_MODELS[selectedBrand.slug.toLowerCase()] || [];
+        setModels(fallback);
+      })
       .finally(() => !cancelled && setIsLoadingModels(false));
     return () => {
       cancelled = true;
     };
-  }, [selectedBrand?._id, category]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedBrand?._id, selectedBrand?.slug, category]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!modelParam) {
@@ -100,14 +126,21 @@ export const SellDevicePage: React.FC = () => {
       .getModelWithVariants(modelParam)
       .then((data) => {
         if (cancelled) return;
-        if (!data) return setModelData(null);
-        // Models without configured variants are sold as a single "Standard" variant
-        const variants = data.variants.length
-          ? data.variants
-          : [{ capacity: 'Standard', priceModifier: 0, price: data.model.basePrice }];
-        setModelData({ ...data, variants });
+        if (data) {
+          const variants = data.variants.length
+            ? data.variants
+            : [{ capacity: 'Standard', priceModifier: 0, price: data.model.basePrice }];
+          setModelData({ ...data, variants });
+          return;
+        }
+        const fallback = findFallbackModel(modelParam);
+        setModelData(fallback || null);
       })
-      .catch(() => !cancelled && setModelData(null))
+      .catch(() => {
+        if (cancelled) return;
+        const fallback = findFallbackModel(modelParam);
+        setModelData(fallback || null);
+      })
       .finally(() => !cancelled && setIsLoadingModel(false));
     return () => {
       cancelled = true;

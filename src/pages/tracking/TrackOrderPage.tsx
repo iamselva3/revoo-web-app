@@ -193,10 +193,10 @@ export const TrackOrderPage: React.FC = () => {
               (selectedRequest as any).assignedCollector?.scheduledDate ||
               (selectedRequest.createdAt
                 ? new Date(selectedRequest.createdAt).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })
                 : 'Tomorrow');
             const timeWindow =
               selectedRequest.preferredTimeWindow ||
@@ -246,25 +246,22 @@ export const TrackOrderPage: React.FC = () => {
                 <div key={idx} className="flex items-start gap-4 relative">
                   {idx < 4 && (
                     <div
-                      className={`absolute left-3.5 top-7 w-0.5 h-8 transition-colors ${
-                        step.done ? 'bg-gradient-to-b from-rose-600 to-violet-600' : 'bg-slate-200'
-                      }`}
+                      className={`absolute left-3.5 top-7 w-0.5 h-8 transition-colors ${step.done ? 'bg-gradient-to-b from-rose-600 to-violet-600' : 'bg-slate-200'
+                        }`}
                     />
                   )}
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 z-10 transition-colors ${
-                      step.done
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 z-10 transition-colors ${step.done
                         ? 'bg-gradient-to-r from-rose-600 to-violet-600 text-white shadow-brand-sm'
                         : 'bg-slate-100 text-slate-400 border border-slate-300'
-                    }`}
+                      }`}
                   >
                     {step.done ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                   </div>
                   <div>
                     <h4
-                      className={`text-xs font-bold ${
-                        step.done ? 'text-slate-900' : 'text-slate-400'
-                      }`}
+                      className={`text-xs font-bold ${step.done ? 'text-slate-900' : 'text-slate-400'
+                        }`}
                     >
                       {step.title}
                     </h4>
