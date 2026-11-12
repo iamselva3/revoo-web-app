@@ -140,11 +140,14 @@
       transition focus:outline-none focus-visible:ring-4 focus-visible:ring-slate-300/40;
   }
 
-  /* Selectable chip (variant / yes-no). Selected state = deep ink like the reference design */
+  /* Selectable chip (variant / yes-no). Selected state = deep ink like the reference design.
+     Light colours are literal values on purpose: applying bg-white / border-slate-* here would also
+     copy the global "html.dark .bg-white" overrides above into an html.dark .chip rule, which
+     outranks .chip-selected and hid the selected state in dark mode. */
   .chip {
     @apply inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 text-sm font-medium
       transition-all duration-150 select-none
-      border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:shadow-soft
+      border-[#e2e8f0] bg-[#ffffff] text-[#1e293b] hover:border-[#cbd5e1] hover:shadow-soft
       dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:hover:border-neutral-700;
   }
 
