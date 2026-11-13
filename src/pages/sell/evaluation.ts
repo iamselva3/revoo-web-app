@@ -226,8 +226,8 @@ export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => 
     case 'functional':
       return true; // no issues is a valid answer
     case 'warranty':
-      // Bill and phone age are both required (the age changes the price)
-      return a.hasValidBill !== null && a.deviceAge !== null;
+      // Phone age is asked only when the warranty is valid, and then it's required (it changes the price)
+      return a.hasValidBill !== null && (a.hasValidWarranty !== true || a.deviceAge !== null);
   }
 };
 
@@ -268,7 +268,7 @@ export const buildSummary = (a: EvaluationAnswers, modelName?: string): SummaryG
 
   const warranty: string[] = [];
   if (a.hasValidBill !== null) warranty.push(a.hasValidBill ? 'Valid bill with same IMEI' : 'No valid bill');
-  const age = DEVICE_AGE_OPTIONS.find((o) => o.id === a.deviceAge)?.label;
+  const age = a.hasValidWarranty === true ? DEVICE_AGE_OPTIONS.find((o) => o.id === a.deviceAge)?.label : undefined;
   if (age) warranty.push(`Device age: ${age}`);
   if (warranty.length) groups.push({ title: 'Warranty', items: warranty });
 
@@ -307,6 +307,7 @@ export const buildConditionPayload = (a: EvaluationAnswers) => {
     bill_same_imei: hasValidBill,
     box_same_imei: a.hasOriginalBox,
     original_charger: a.hasOriginalCharger,
-    deviceAge: a.deviceAge || undefined,
+    // Only sent when the age question was shown (valid warranty), so a stale answer never changes the price
+    deviceAge: basicQuestions.hasValidWarranty ? a.deviceAge || undefined : undefined,
   };
 };
