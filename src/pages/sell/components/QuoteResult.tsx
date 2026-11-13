@@ -32,7 +32,10 @@ export const QuoteResult: React.FC<QuoteResultProps> = ({
 }) => {
   const animated = useAnimatedNumber(quote, 900);
   const [showBreakdown, setShowBreakdown] = useState(false);
-  const lines = breakdown.filter((l) => l.adjustment !== 0 && l.component !== 'Base Price');
+  // Base and storage are already inside the quoted price; only list what changed it
+  const lines = breakdown.filter(
+    (l) => l.adjustment !== 0 && l.component !== 'Base Price' && l.component !== 'Storage Variant'
+  );
 
   return (
     <div className="mx-auto max-w-3xl animate-fade-in">

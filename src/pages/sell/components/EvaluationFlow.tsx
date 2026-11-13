@@ -314,7 +314,10 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
             {active === 'warranty' && (
               <>
                 <div>
-                  <SectionHeading title="Original accessories you have" subtitle="Select all that you'll hand over. Each one adds a little to your price." />
+                  <SectionHeading
+                    title="Original accessories you have"
+                    subtitle="Our price already includes the original charger and box. Select the ones you have; a small amount is taken off for each one that's missing."
+                  />
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                     {ACCESSORIES.map((acc) => (
                       <OptionCard
