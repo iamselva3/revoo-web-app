@@ -7,6 +7,7 @@ import { usePageLoading } from '../../context/PageLoadingContext';
 import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import { BrandLogo } from '../../components/brand/BrandLogo';
 import { CategoryArt, CategoryArtKind } from '../../components/sell/CategoryArt';
+import { HeroDeviceStage } from '../../components/home/HeroDeviceStage';
 
 const CATEGORIES: Array<{
   id: CategoryArtKind;
@@ -36,7 +37,7 @@ const HeroCard: React.FC<{ point: (typeof HERO_POINTS)[number]; className?: stri
   const Icon = point.icon;
   return (
     <div
-      className={`absolute flex items-center gap-3 rounded-2xl border border-white/70 bg-white/80 px-3.5 py-3 shadow-[0_18px_40px_-18px_rgba(76,29,149,0.35)] backdrop-blur-md motion-safe:animate-drift dark:border-neutral-800 dark:bg-neutral-900/80 ${className}`}
+      className={`absolute z-10 flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 px-3.5 py-3 shadow-[0_18px_40px_-18px_rgba(76,29,149,0.35)] motion-safe:animate-drift dark:border-neutral-800 dark:bg-neutral-900/95 ${className}`}
       style={{ animationDelay: delay }}
     >
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${point.tone} text-white shadow-md`}>
@@ -90,7 +91,8 @@ export const HomePage: React.FC = () => {
   }, [setIsPageLoading]);
 
   useEffect(() => {
-    const id = setInterval(() => setWordIdx((p) => (p + 1) % HERO_WORDS.length), 2200);
+    // Long enough for the 3D device to fly in, land and be seen
+    const id = setInterval(() => setWordIdx((p) => (p + 1) % HERO_WORDS.length), 3400);
     return () => clearInterval(id);
   }, []);
 
@@ -139,23 +141,13 @@ export const HomePage: React.FC = () => {
             </ul>
           </div>
 
-          {/* Desktop art panel: gradient glow + rings, the device for the current word, floating promises */}
-          <div className="relative hidden h-[440px] lg:block" aria-hidden="true">
-            <div className="absolute left-1/2 top-1/2 h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-amber-300 via-pink-400 to-violet-500 opacity-25 blur-3xl dark:opacity-30" />
-            <div className="absolute left-1/2 top-1/2 h-[460px] w-[460px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-amber-300/50 dark:border-amber-400/15" />
-            <div className="absolute left-1/2 top-1/2 h-[370px] w-[370px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-200/80 dark:border-violet-400/15" />
-            <div className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-amber-100 via-pink-100 to-violet-200 shadow-[inset_0_-20px_60px_rgba(139,92,246,0.18)] dark:from-amber-500/15 dark:via-pink-500/10 dark:to-violet-600/25" />
-            <span className="absolute left-[18%] top-[16%] h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_0_6px_rgba(251,191,36,0.18)]" />
-            <span className="absolute bottom-[18%] right-[16%] h-2.5 w-2.5 rounded-full bg-violet-500 shadow-[0_0_0_6px_rgba(139,92,246,0.18)]" />
-            <span className="absolute right-[24%] top-[10%] h-2 w-2 rounded-full bg-pink-500" />
-
-            <div key={wordIdx} className="absolute inset-0 flex animate-fade-in items-center justify-center">
-              <CategoryArt kind={HERO_ART[wordIdx]} className="h-64 w-auto drop-shadow-[0_24px_30px_rgba(76,29,149,0.25)]" />
-            </div>
-
-            <HeroCard point={HERO_POINTS[0]} className="left-0 top-12" />
-            <HeroCard point={HERO_POINTS[1]} className="right-0 top-[42%]" delay="1.2s" />
-            <HeroCard point={HERO_POINTS[2]} className="bottom-8 left-10" delay="2.4s" />
+          {/* Desktop art: 3D device stage for the current word, with the three promises floating around it */}
+          <div className="relative hidden h-[460px] lg:block" aria-hidden="true">
+            <HeroDeviceStage kinds={HERO_ART} index={wordIdx} />
+            {/* Corners only, so the cards never cover the device */}
+            <HeroCard point={HERO_POINTS[0]} className="left-0 top-0" />
+            <HeroCard point={HERO_POINTS[1]} className="bottom-2 right-0" delay="1.2s" />
+            <HeroCard point={HERO_POINTS[2]} className="bottom-2 left-0" delay="2.4s" />
           </div>
         </div>
       </section>
