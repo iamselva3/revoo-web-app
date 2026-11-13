@@ -111,8 +111,28 @@ export const HomePage: React.FC = () => {
             </p>
             <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:text-5xl">
               Sell your old{' '}
-              <span key={wordIdx} className="inline-block animate-slide-up bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 bg-clip-text text-transparent">
-                {HERO_WORDS[wordIdx]}
+              {/* All words share one slot sized by the longest, so the headline never re-wraps; the
+                  bottom padding keeps the gradient under descenders (the "p" of "phone"). */}
+              <span className="-mb-[0.18em] inline-grid whitespace-nowrap">
+                {HERO_WORDS.map((word, i) => {
+                  // The old word leaves first (quick fade up), then the new one rises in: never two
+                  // half-visible words on top of each other.
+                  const state =
+                    i === wordIdx
+                      ? 'opacity-100 translate-y-0 duration-300 delay-200'
+                      : i === (wordIdx + HERO_WORDS.length - 1) % HERO_WORDS.length
+                        ? 'opacity-0 -translate-y-2 duration-200'
+                        : 'opacity-0 translate-y-2 duration-0';
+                  return (
+                    <span
+                      key={word}
+                      aria-hidden={i !== wordIdx}
+                      className={`col-start-1 row-start-1 justify-self-start bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 bg-clip-text pb-[0.18em] text-transparent transition-[opacity,transform] ease-out motion-reduce:transition-none ${state}`}
+                    >
+                      {word}
+                    </span>
+                  );
+                })}
               </span>
               <br />
               for cash.
@@ -144,10 +164,8 @@ export const HomePage: React.FC = () => {
           {/* Desktop art: 3D device stage for the current word, with the three promises floating around it */}
           <div className="relative hidden h-[460px] lg:block" aria-hidden="true">
             <HeroDeviceStage kinds={HERO_ART} index={wordIdx} />
-            {/* Corners only, so the cards never cover the device */}
-            <HeroCard point={HERO_POINTS[0]} className="left-0 top-0" />
-            <HeroCard point={HERO_POINTS[1]} className="bottom-2 right-0" delay="1.2s" />
-            <HeroCard point={HERO_POINTS[2]} className="bottom-2 left-0" delay="2.4s" />
+            {/* In a corner, so it never covers the device */}
+            <HeroCard point={HERO_POINTS[1]} className="bottom-2 right-0" />
           </div>
         </div>
       </section>

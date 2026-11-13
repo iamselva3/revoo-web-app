@@ -23,13 +23,11 @@ const SHAPE: Record<StageKind, { w: number; h: number; r: number; top: number }>
   tv: { w: 344, h: 200, r: 10, top: -112 },
 };
 
-/** Where the copies fly in from (px / deg) and their stagger (ms). */
+/** Where the faint copies glide in from (px / deg) and their stagger (ms). Few and gentle on purpose. */
 const GHOSTS = [
-  { x: -270, y: -150, z: -220, rx: 20, ry: 55, rz: -24, d: 0 },
-  { x: 285, y: -170, z: -140, rx: -15, ry: -50, rz: 20, d: 70 },
-  { x: -255, y: 175, z: -100, rx: -25, ry: 40, rz: 14, d: 140 },
-  { x: 265, y: 185, z: -260, rx: 25, ry: -45, rz: -16, d: 210 },
-  { x: 20, y: -290, z: -320, rx: -55, ry: 10, rz: 6, d: 280 },
+  { x: -230, y: -30, z: -160, rx: 0, ry: 32, rz: -5, d: 0 },
+  { x: 230, y: 25, z: -160, rx: 0, ry: -32, rz: 5, d: 90 },
+  { x: 0, y: -130, z: -240, rx: -18, ry: 0, rz: 0, d: 170 },
 ];
 
 const Layers: React.FC<{ n: number; step: number }> = ({ n, step }) => (
@@ -260,8 +258,10 @@ export const HeroDeviceStage: React.FC<{ kinds: StageKind[]; index: number }> = 
         {live && <div key={`land-${live.id}`} className="hs-landing" />}
         <div className="hs-shadow" />
 
-        <div className="hs-center">
+        <div className="hs-ghosts">
           {live && GHOSTS.map((g, i) => <Ghost key={`${live.id}-${i}`} kind={live.kind} g={g} />)}
+        </div>
+        <div className="hs-center">
           {items.map((item) => (
             <div key={item.id} className={item.leaving ? 'hs-exit' : 'hs-enter'}>
               <div className={`hs-float ${item.kind === 'laptop' || item.kind === 'tv' ? 'hs-float-soft' : ''}`}>
