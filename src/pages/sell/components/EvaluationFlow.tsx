@@ -56,6 +56,12 @@ const Notice: React.FC<{ title: string; children: React.ReactNode }> = ({ title,
   </div>
 );
 
+const RequiredTag: React.FC = () => (
+  <span className="ml-1.5 inline-block rounded-full bg-amber-100 px-2 py-0.5 align-middle text-[11px] font-semibold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300">
+    Required
+  </span>
+);
+
 const SectionHeading: React.FC<{ title: string; subtitle?: string }> = ({ title, subtitle }) => (
   <div className="mb-4">
     <h2 className="text-lg font-semibold text-ink dark:text-white sm:text-xl">{title}</h2>
@@ -185,7 +191,6 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
       nextAnswers.isDisplayOriginal = null;
       nextAnswers.hasValidWarranty = null;
     }
-    if (key === 'hasValidWarranty' && value === false) nextAnswers.deviceAge = null;
     onChange(nextAnswers);
   };
 
@@ -340,7 +345,7 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[15px] font-semibold text-ink dark:text-white">
-                        Do you have the original bill with the same IMEI?
+                        Do you have the original bill with the same IMEI? <RequiredTag />
                       </p>
                       <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-neutral-400">
                         A valid purchase invoice gets you a noticeably better price.
@@ -350,25 +355,27 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                   </div>
                 </div>
 
-                {answers.hasValidWarranty === true && (
-                  <div className="surface p-5 animate-fade-in sm:p-6">
-                    <p className="text-[15px] font-semibold text-ink dark:text-white">How old is your phone?</p>
-                    <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-neutral-400">Count from the purchase date on your bill.</p>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {DEVICE_AGE_OPTIONS.map((o) => (
-                        <button
-                          key={o.id}
-                          type="button"
-                          onClick={() => set('deviceAge', o.id)}
-                          aria-pressed={answers.deviceAge === o.id}
-                          className={`chip h-12 !px-3 ${answers.deviceAge === o.id ? 'chip-selected' : ''}`}
-                        >
-                          {o.label}
-                        </button>
-                      ))}
-                    </div>
+                <div className="surface p-5 sm:p-6">
+                  <p className="text-[15px] font-semibold text-ink dark:text-white">
+                    How old is your phone? <RequiredTag />
+                  </p>
+                  <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-neutral-400">
+                    Count from the date it was first bought (the date on the bill).
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {DEVICE_AGE_OPTIONS.map((o) => (
+                      <button
+                        key={o.id}
+                        type="button"
+                        onClick={() => set('deviceAge', o.id)}
+                        aria-pressed={answers.deviceAge === o.id}
+                        className={`chip h-12 !px-3 ${answers.deviceAge === o.id ? 'chip-selected' : ''}`}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
 
                 {submitError && (
                   <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" role="alert">

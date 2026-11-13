@@ -226,7 +226,8 @@ export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => 
     case 'functional':
       return true; // no issues is a valid answer
     case 'warranty':
-      return a.hasValidBill !== null && (a.hasValidWarranty !== true || a.deviceAge !== null);
+      // Bill and phone age are both required (the age changes the price)
+      return a.hasValidBill !== null && a.deviceAge !== null;
   }
 };
 
