@@ -88,3 +88,4 @@ function generateLocalFallback(query: string): string {
     `How can I assist you today?`
   );
 }
+
