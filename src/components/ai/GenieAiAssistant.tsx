@@ -39,7 +39,6 @@ export const GenieAiAssistant: React.FC = () => {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showCallout, setShowCallout] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -87,17 +86,6 @@ export const GenieAiAssistant: React.FC = () => {
     }
   }, [messages]);
 
-  // Show callout badge on first visit after 2 seconds
-  useEffect(() => {
-    const seen = sessionStorage.getItem(POPUP_SEEN_KEY);
-    if (!seen && !isOpen) {
-      const timer = setTimeout(() => {
-        setShowCallout(true);
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
   // Scroll to bottom on new messages
   useEffect(() => {
     if (isOpen) {
@@ -108,8 +96,6 @@ export const GenieAiAssistant: React.FC = () => {
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
-      setShowCallout(false);
-      sessionStorage.setItem(POPUP_SEEN_KEY, 'true');
       setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [isOpen]);
@@ -313,61 +299,22 @@ export const GenieAiAssistant: React.FC = () => {
   return (
     <>
       {/* Floating Right Corner Trigger */}
-      <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end">
-        {/* First-visit notification callout */}
-        {showCallout && !isOpen && (
-          <div className="mb-2.5 max-w-[270px] animate-slide-up rounded-2xl border border-violet-300 bg-white p-3 shadow-xl dark:border-violet-900 dark:bg-[#15102a] relative">
-            <button
-              onClick={() => setShowCallout(false)}
-              className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              aria-label="Dismiss message"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-            <div className="flex items-start gap-2.5 pr-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 to-amber-400 text-white shadow-sm">
-                <Sparkles className="w-4 h-4" />
-              </span>
-              <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white">Genie AI Assistant</p>
-                <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                  Need help selling your phone or tracking an order? Ask me anytime!
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Floating Bubble Button */}
+      <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center">
         {!isOpen && (
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            aria-label="Open Genie AI Assistant"
-            className="group relative flex items-center gap-2.5 h-13 px-4 rounded-full bg-gradient-to-r from-[#170e33] via-[#241347] to-[#120a28] text-white shadow-[0_8px_30px_rgb(124,58,237,0.35)] border border-violet-500/40 hover:border-amber-400/70 hover:scale-105 active:scale-95 transition-all duration-300 focus:outline-none"
+            aria-label="Open AI Assistant"
+            className="group flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full bg-white dark:bg-[#15102a] text-slate-800 dark:text-white border border-slate-200/90 dark:border-violet-900/60 shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_30px_rgba(124,58,237,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none cursor-pointer"
           >
-            {/* Glowing Pulse Ring */}
-            <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-violet-600 to-amber-400 opacity-30 blur-sm group-hover:opacity-75 transition duration-300 animate-pulse-subtle" />
-
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/20 border border-amber-300/40 p-1">
-              <img
-                src="/genie_symbol.png"
-                alt="Genie"
-                className="h-full w-full object-contain filter drop-shadow"
-                onError={(e) => {
-                  // Fallback icon if image is missing
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
-              />
-              <Sparkles className="w-4 h-4 text-amber-400 absolute" style={{ display: 'none' }} />
-            </span>
-
-            <span className="relative flex flex-col text-left">
-              <span className="text-[11px] font-medium leading-none text-amber-300 flex items-center gap-1">
-                AI Assistant
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
-              </span>
-              <span className="text-[13px] font-bold text-white tracking-wide">Ask Genie</span>
+            <img
+              src="/genie_symbol.png"
+              alt="Genie"
+              className="h-8 w-8 object-contain transition-transform group-hover:scale-110"
+            />
+            <span className="flex items-center gap-1.5 text-xs font-bold tracking-wide">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              AI Assistant
             </span>
           </button>
         )}
