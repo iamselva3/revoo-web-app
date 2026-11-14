@@ -6,6 +6,7 @@ import { Footer } from './Footer';
 import { PromotionalPopup } from '../common/PromotionalPopup';
 import { AuthModal } from '../common/AuthModal';
 import { LocationPicker, LocationPrompt } from '../location/LocationPicker';
+import { GenieAiAssistant } from '../ai/GenieAiAssistant';
 import { usePageLoading } from '../../context/PageLoadingContext';
 
 export const Layout: React.FC = () => {
@@ -26,6 +27,7 @@ export const Layout: React.FC = () => {
       <AuthModal />
       <LocationPicker />
       <LocationPrompt />
+      <GenieAiAssistant />
     </div>
   );
 };
