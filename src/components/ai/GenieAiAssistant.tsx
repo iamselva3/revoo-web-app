@@ -323,22 +323,32 @@ export const GenieAiAssistant: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Chat Modal Panel */}
+      {/* Mobile Backdrop */}
       {isOpen && (
-        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-[360px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-6rem)] rounded-3xl shadow-[0_20px_60px_-15px_rgba(20,10,45,0.45)] border border-violet-200/80 dark:border-violet-900/60 bg-white dark:bg-[#0c0918] flex flex-col overflow-hidden animate-slide-up">
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 sm:hidden animate-fade-in"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Floating Chat Modal Panel - Bottom sheet on mobile, floating widget on desktop */}
+      {isOpen && (
+        <div className="fixed inset-x-0 bottom-0 sm:bottom-6 sm:right-6 sm:left-auto z-50 w-full sm:w-[400px] h-[85vh] sm:h-[580px] max-h-[92vh] sm:max-h-[calc(100vh-5rem)] rounded-t-[28px] sm:rounded-3xl shadow-[0_20px_60px_-15px_rgba(20,10,45,0.45)] border-t sm:border border-violet-200/80 dark:border-violet-900/60 bg-white dark:bg-[#0c0918] flex flex-col overflow-hidden animate-slide-up">
+          {/* Mobile Handle Indicator */}
+          <div className="sm:hidden flex justify-center pt-2.5 pb-1 bg-gradient-to-r from-[#170e33] via-[#26144e] to-[#120a28]">
+            <div className="w-10 h-1 rounded-full bg-white/25" />
+          </div>
+
           {/* Header */}
-          <div className="relative flex items-center justify-between px-4 py-3.5 bg-gradient-to-r from-[#170e33] via-[#26144e] to-[#120a28] text-white border-b border-violet-900/40 shrink-0">
+          <div className="relative flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#170e33] via-[#26144e] to-[#120a28] text-white border-b border-violet-900/40 shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-400/20 border border-amber-300/50 p-1 shadow-inner">
                 <img src="/genie_symbol.png" alt="Genie" className="h-full w-full object-contain" />
                 <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#170e33]" />
               </div>
               <div>
-                <h3 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+                <h3 className="text-sm font-bold tracking-tight text-white">
                   Genie AI Guide
-                  <span className="rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[9px] font-semibold text-amber-300 border border-amber-400/30">
-                    Groq Fast
-                  </span>
                 </h3>
                 <p className="text-[10px] text-violet-200/80 flex items-center gap-1">
                   <span>Tamil Nadu Buyback & Delivery</span>
@@ -359,11 +369,11 @@ export const GenieAiAssistant: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                title="Minimize"
+                title="Close"
                 className="p-1.5 rounded-xl text-violet-300 hover:text-white hover:bg-white/10 transition-colors"
                 aria-label="Close assistant"
               >
-                <Minus className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -475,7 +485,7 @@ export const GenieAiAssistant: React.FC = () => {
               </button>
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500 px-1">
-              <span>Powered by Groq AI</span>
+              <span>Genie AI Assistant</span>
               <span>Tamil Nadu Instant Buyback</span>
             </div>
           </form>

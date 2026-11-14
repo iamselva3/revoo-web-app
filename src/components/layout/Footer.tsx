@@ -60,11 +60,11 @@ export const Footer: React.FC = () => {
               Sell your old phone for the best price, picked up free from your door and paid before our agent leaves.
             </p>
             <div className="space-y-2 text-[13px] text-slate-600 dark:text-neutral-400">
-              <a href="tel:+919442054321" className="flex items-center gap-2 hover:text-ink dark:hover:text-white">
-                <Phone className="h-4 w-4 text-amber-500" /> +91 94420 54321 <span className="text-xs">(9 AM – 8 PM)</span>
+              <a href="tel:+919363859553" className="flex items-center gap-2 hover:text-ink dark:hover:text-white">
+                <Phone className="h-4 w-4 text-amber-500" /> +91 93638 59553 <span className="text-xs">(9 AM – 9 PM)</span>
               </a>
-              <a href="mailto:support@genie.in" className="flex items-center gap-2 hover:text-ink dark:hover:text-white">
-                <Mail className="h-4 w-4 text-amber-500" /> support@genie.in
+              <a href="mailto:genietnsupport@gmail.com" className="flex items-center gap-2 hover:text-ink dark:hover:text-white">
+                <Mail className="h-4 w-4 text-amber-500" /> genietnsupport@gmail.com
               </a>
             </div>
           </div>

@@ -19,10 +19,10 @@ import {
 export const LEGAL_LAST_UPDATED = '11 November 2026';
 const LEGAL_LAST_UPDATED_ISO = '2026-11-11';
 
-export const SUPPORT_EMAIL = 'support@genie.in';
-export const SUPPORT_PHONE_DISPLAY = '+91 94420 54321';
-const SUPPORT_PHONE_TEL = '+919442054321';
-export const SUPPORT_HOURS = '9 AM – 8 PM IST';
+export const SUPPORT_EMAIL = 'genietnsupport@gmail.com';
+export const SUPPORT_PHONE_DISPLAY = '+91 93638 59553';
+const SUPPORT_PHONE_TEL = '+919363859553';
+export const SUPPORT_HOURS = '9 AM – 9 PM IST';
 
 /** Distance (px) below the viewport top at which a section counts as "current". */
 const SCROLL_SPY_OFFSET = 120;

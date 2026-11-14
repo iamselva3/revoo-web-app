@@ -257,11 +257,11 @@ export const RequestDetailsPanel: React.FC<RequestDetailsPanelProps> = ({ reques
 
           <div className="rounded-3xl bg-[#faf9fd] p-4 text-sm text-slate-600 dark:bg-neutral-900 dark:text-neutral-300">
             Need to reschedule, cancel or change your number?{' '}
-            <a href="tel:+919442054321" className="font-semibold text-ink underline-offset-2 hover:underline dark:text-white">
-              Call +91 94420 54321
+            <a href="tel:+919363859553" className="font-semibold text-ink underline-offset-2 hover:underline dark:text-white">
+              Call +91 93638 59553
             </a>{' '}
             or{' '}
-            <a href={`mailto:support@genie.in?subject=${encodeURIComponent(`Pickup ${r.requestNumber ? r.requestNumber.replace(/^REV-/i, 'GENIE-') : ''}`)}`} className="font-semibold text-ink underline-offset-2 hover:underline dark:text-white">
+            <a href={`mailto:genietnsupport@gmail.com?subject=${encodeURIComponent(`Pickup ${r.requestNumber ? r.requestNumber.replace(/^REV-/i, 'GENIE-') : ''}`)}`} className="font-semibold text-ink underline-offset-2 hover:underline dark:text-white">
               email support
             </a>
             .
