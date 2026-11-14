@@ -299,26 +299,29 @@ export const GenieAiAssistant: React.FC = () => {
   return (
     <>
       {/* Floating Right Corner Trigger */}
-      <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center">
-        {!isOpen && (
+      {!isOpen && (
+        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2 group">
+          {/* Banner appears only when hovered */}
+          <div className="pointer-events-none opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 px-3 py-1.5 rounded-full bg-white dark:bg-[#15102a] text-slate-800 dark:text-white border border-slate-200/90 dark:border-violet-900/60 shadow-lg text-xs font-bold tracking-wide flex items-center gap-1.5 whitespace-nowrap">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            AI Assistant
+          </div>
+
+          {/* Simple Genie Icon Button */}
           <button
             type="button"
             onClick={() => setIsOpen(true)}
             aria-label="Open AI Assistant"
-            className="group flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full bg-white dark:bg-[#15102a] text-slate-800 dark:text-white border border-slate-200/90 dark:border-violet-900/60 shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_30px_rgba(124,58,237,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none cursor-pointer"
+            className="h-12 w-12 sm:h-13 sm:w-13 rounded-full bg-white dark:bg-[#15102a] border border-slate-200/90 dark:border-violet-900/60 shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_30px_rgba(124,58,237,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center p-2.5 focus:outline-none cursor-pointer"
           >
             <img
               src="/genie_symbol.png"
               alt="Genie"
-              className="h-8 w-8 object-contain transition-transform group-hover:scale-110"
+              className="h-full w-full object-contain transition-transform group-hover:scale-110"
             />
-            <span className="flex items-center gap-1.5 text-xs font-bold tracking-wide">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              AI Assistant
-            </span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Floating Chat Modal Panel */}
       {isOpen && (
