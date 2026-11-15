@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowLeft, ArrowRight, Check, ChevronDown, ChevronRight,
 import { ConditionArt } from '../../../components/sell/ConditionArt';
 import { DeviceVariant, SmartphoneModel } from '../../../types';
 import {
-  ACCESSORIES,
+  accessoriesFor,
   DEVICE_AGE_OPTIONS,
   EVAL_TABS,
   EvalTabId,
@@ -13,6 +13,7 @@ import {
   applicableTabs,
   buildSummary,
   isTabComplete,
+  underWarranty,
   visiblePhysicalSections,
 } from '../evaluation';
 import { DeviceImage, OptionCard, formatCapacity, formatINR, fullDeviceName } from './shared';
@@ -191,22 +192,28 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
       nextAnswers.isDisplayOriginal = null;
       nextAnswers.hasValidWarranty = null;
     }
-    // The age question only shows for a valid warranty; clear its answer whenever it's hidden
-    if (nextAnswers.hasValidWarranty !== true) nextAnswers.deviceAge = null;
+    if (key === 'isDisplayOriginal') nextAnswers.hasValidWarranty = null;
+    // Hidden questions never keep an old answer (it would still change the price)
+    if (!underWarranty(nextAnswers)) {
+      nextAnswers.deviceAge = null;
+      nextAnswers.hasValidBill = false;
+    }
+    if (nextAnswers.isTouchscreenWorking === false || nextAnswers.isDisplayOriginal === false) {
+      nextAnswers.screenDisplayCondition = null;
+      nextAnswers.touchGlassCondition = null;
+    }
     onChange(nextAnswers);
   };
 
   const visibleScreening = SCREENING_QUESTIONS.filter((q) => {
     if (q.key === 'isPhoneWorking') return true;
     if (q.key === 'isTouchscreenWorking') return answers.isPhoneWorking === true;
-    return answers.isPhoneWorking === true && answers.isTouchscreenWorking === true;
+    if (q.key === 'isDisplayOriginal') return answers.isPhoneWorking === true && answers.isTouchscreenWorking === true;
+    // Warranty: only for an original display (turncash flow)
+    return answers.isPhoneWorking === true && answers.isTouchscreenWorking === true && answers.isDisplayOriginal === true;
   });
 
-  const continueLabel = isLast
-    ? 'Get exact value'
-    : active === 'functional' && !Object.values(answers.hardwareFaults).some(Boolean)
-      ? 'No issues, continue'
-      : 'Continue';
+  const continueLabel = isLast ? 'Get exact value' : 'Continue';
 
   return (
     <div ref={topRef} className="scroll-mt-28 animate-fade-in">
@@ -265,12 +272,12 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                 ))}
                 {answers.isPhoneWorking === false && (
                   <Notice title="Phone doesn't switch on">
-                    No problem, we still buy it. Its value is based on parts, plus a bonus for any original accessories you include.
+                    No problem, we still buy it for its parts. Nothing else to answer: tap Get exact value to see your price.
                   </Notice>
                 )}
                 {answers.isPhoneWorking === true && answers.isTouchscreenWorking === false && (
                   <Notice title="Touchscreen not working">
-                    We'll price it for a display replacement. Next, tell us about the screen and body condition.
+                    We'll price it for a display replacement. Next, tell us about the back and side panels.
                   </Notice>
                 )}
               </div>
@@ -296,41 +303,40 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                 </div>
               ))}
 
-            {/* ---------- Functional condition ---------- */}
+            {/* ---------- Functional & Accessories ---------- */}
             {active === 'functional' && (
-              <div>
-                <SectionHeading title="Select all issues identified in your phone" subtitle="Skip this if everything works fine." />
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                  {functionalIssuesFor(model.name).map((issue) => (
-                    <OptionCard
-                      key={issue.key}
-                      multi
-                      selected={Boolean(answers.hardwareFaults[issue.key])}
-                      onClick={() =>
-                        set('hardwareFaults', { ...answers.hardwareFaults, [issue.key]: !answers.hardwareFaults[issue.key] })
-                      }
-                      art={<ConditionArt kind={issue.art} className="h-full w-auto" />}
-                      label={issue.label}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ---------- Warranty condition ---------- */}
-            {active === 'warranty' && (
               <>
+                {answers.isPhoneWorking !== false && (
+                  <div>
+                    <SectionHeading title="Select all issues identified in your phone" subtitle="Skip this if everything works fine." />
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                      {functionalIssuesFor(model.name).map((issue) => (
+                        <OptionCard
+                          key={issue.key}
+                          multi
+                          selected={Boolean(answers.hardwareFaults[issue.key])}
+                          onClick={() =>
+                            set('hardwareFaults', { ...answers.hardwareFaults, [issue.key]: !answers.hardwareFaults[issue.key] })
+                          }
+                          art={<ConditionArt kind={issue.art} className="h-full w-auto" />}
+                          label={issue.label}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <SectionHeading
-                    title="Original accessories you have"
-                    subtitle="Our price already includes the original charger and box. Select the ones you have; a small amount is taken off for each one that's missing."
+                    title="Select all accessories you have"
+                    subtitle="Our price already includes the original charger and box. A small amount is taken off for each one that's missing."
                   />
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                    {ACCESSORIES.map((acc) => (
+                    {accessoriesFor(answers).map((acc) => (
                       <OptionCard
                         key={acc.key}
                         multi
-                        selected={answers[acc.key]}
+                        selected={Boolean(answers[acc.key])}
                         onClick={() => set(acc.key, !answers[acc.key])}
                         art={<ConditionArt kind={acc.art} className="h-full w-auto" />}
                         label={acc.label}
@@ -339,52 +345,38 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                     ))}
                   </div>
                 </div>
-
-                <div className="surface p-5 sm:p-6">
-                  <div className="flex gap-4">
-                    <span className="hidden h-24 w-28 shrink-0 items-end justify-center overflow-hidden rounded-2xl bg-[#f4f4f6] dark:bg-neutral-900 sm:flex">
-                      <ConditionArt kind="bill" className="h-full w-auto" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[15px] font-semibold text-ink dark:text-white">
-                        Do you have the original bill with the same IMEI? <RequiredTag />
-                      </p>
-                      <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-neutral-400">
-                        A valid purchase invoice gets you a noticeably better price.
-                      </p>
-                      <YesNo value={answers.hasValidBill} onChange={(v) => set('hasValidBill', v)} />
-                    </div>
-                  </div>
-                </div>
-
-                {answers.hasValidWarranty === true && (
-                  <div className="surface p-5 animate-fade-in sm:p-6">
-                    <p className="text-[15px] font-semibold text-ink dark:text-white">
-                      How old is your phone? <RequiredTag />
-                    </p>
-                    <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-neutral-400">Count from the purchase date on your bill.</p>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {DEVICE_AGE_OPTIONS.map((o) => (
-                        <button
-                          key={o.id}
-                          type="button"
-                          onClick={() => set('deviceAge', o.id)}
-                          aria-pressed={answers.deviceAge === o.id}
-                          className={`chip h-12 !px-3 ${answers.deviceAge === o.id ? 'chip-selected' : ''}`}
-                        >
-                          {o.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {submitError && (
-                  <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" role="alert">
-                    {submitError}
-                  </p>
-                )}
               </>
+            )}
+
+            {/* ---------- Warranty condition (only for a phone under warranty) ---------- */}
+            {active === 'warranty' && underWarranty(answers) && (
+              <div className="surface p-5 animate-fade-in sm:p-6">
+                <p className="text-[15px] font-semibold text-ink dark:text-white">
+                  How old is your phone? <RequiredTag />
+                </p>
+                <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-neutral-400">Count from the purchase date on your bill.</p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {DEVICE_AGE_OPTIONS.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => set('deviceAge', o.id)}
+                      aria-pressed={answers.deviceAge === o.id}
+                      className={`chip flex min-h-[3.25rem] flex-col justify-center gap-0.5 !px-3 py-2 ${answers.deviceAge === o.id ? 'chip-selected' : ''}`}
+                    >
+                      <span>{o.label}</span>
+                      {o.hint && <span className="text-[11px] font-normal opacity-70">{o.hint}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Error from getting the price: shown on whichever step is last */}
+            {isLast && submitError && (
+              <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300" role="alert">
+                {submitError}
+              </p>
             )}
           </div>
 
