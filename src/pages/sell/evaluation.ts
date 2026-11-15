@@ -1,14 +1,21 @@
 import { ConditionArtKind } from '../../components/sell/ConditionArt';
 
-/** The four evaluation tabs, in order (mirrors the reference flow). */
+/**
+ * The evaluation pages, in order (like turncash). Functional issues and accessories are separate
+ * pages under one tab, "Functional & Accessories".
+ */
 export const EVAL_TABS = [
   { id: 'overall', label: 'Overall condition' },
   { id: 'physical', label: 'Physical condition' },
   { id: 'functional', label: 'Functional & Accessories' },
+  { id: 'accessories', label: 'Functional & Accessories' },
   { id: 'warranty', label: 'Warranty condition' },
 ] as const;
 
 export type EvalTabId = (typeof EVAL_TABS)[number]['id'];
+
+/** Tab-bar entry a page belongs to (the accessories page sits under the functional tab). */
+export const tabOf = (page: EvalTabId): EvalTabId => (page === 'accessories' ? 'functional' : page);
 
 export type HardwareFaultKey =
   | 'batteryHealthBelow83'
@@ -245,6 +252,7 @@ export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => 
     case 'physical':
       return visiblePhysicalSections(a).every((s) => a[s.key] !== null);
     case 'functional':
+    case 'accessories':
       return true; // no issues and no accessories are valid answers
     case 'warranty':
       // Shown only for a phone under warranty; the phone's age is then required (it changes the price)
@@ -253,15 +261,17 @@ export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => 
 };
 
 /**
- * Tabs that apply:
- * - a phone that doesn't power on: only the first question, then the price (like turncash);
- * - the Warranty step only while a warranty is possible (dropped once the touchscreen doesn't work,
- *   the display isn't original or the customer says there's no warranty).
+ * Pages that apply, like turncash:
+ * - a phone that doesn't power on: only the first question, then the price;
+ * - otherwise overall, physical, functional issues, then accessories (always the 4th page);
+ * - the Warranty page (phone age) last, only while a warranty is possible (dropped once the
+ *   touchscreen doesn't work, the display isn't original or the customer says there's no warranty).
  */
 export const applicableTabs = (a: EvaluationAnswers): EvalTabId[] => {
   if (a.isPhoneWorking === false) return ['overall'];
   const noWarranty = a.isTouchscreenWorking === false || a.isDisplayOriginal === false || a.hasValidWarranty === false;
-  return noWarranty ? ['overall', 'physical', 'functional'] : ['overall', 'physical', 'functional', 'warranty'];
+  const pages: EvalTabId[] = ['overall', 'physical', 'functional', 'accessories'];
+  return noWarranty ? pages : [...pages, 'warranty'];
 };
 
 export interface SummaryGroup {

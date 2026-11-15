@@ -13,6 +13,7 @@ import {
   applicableTabs,
   buildSummary,
   isTabComplete,
+  tabOf,
   underWarranty,
   visiblePhysicalSections,
 } from '../evaluation';
@@ -139,7 +140,7 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
   // Keep the active tab visible in the horizontally scrolling tab bar on phones
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   useEffect(() => {
-    tabRefs.current[active]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    tabRefs.current[tabOf(active)]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }, [active]);
 
   const activeIndex = tabs.indexOf(active);
@@ -222,10 +223,12 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
           {/* Tabs */}
           <div className="no-scrollbar -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
             <nav className="flex min-w-max items-center gap-1 border-b border-slate-200 dark:border-neutral-800" aria-label="Evaluation steps">
-              {tabs.map((t, i) => {
+              {/* One tab per group: the accessories page sits under "Functional & Accessories" */}
+              {tabs.filter((t) => tabOf(t) === t).map((t, i) => {
                 const meta = EVAL_TABS.find((x) => x.id === t)!;
-                const isActive = t === active;
-                const reachable = i <= activeIndex || tabs.slice(0, i).every((p) => isTabComplete(p, answers));
+                const isActive = tabOf(active) === t;
+                const page = tabs.indexOf(t);
+                const reachable = page <= activeIndex || tabs.slice(0, page).every((p) => isTabComplete(p, answers));
                 return (
                   <React.Fragment key={t}>
                     {i > 0 && <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 dark:text-neutral-700" aria-hidden="true" />}
@@ -303,49 +306,48 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
                 </div>
               ))}
 
-            {/* ---------- Functional & Accessories ---------- */}
+            {/* ---------- Functional issues (page 3) ---------- */}
             {active === 'functional' && (
-              <>
-                {answers.isPhoneWorking !== false && (
-                  <div>
-                    <SectionHeading title="Select all issues identified in your phone" subtitle="Skip this if everything works fine." />
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                      {functionalIssuesFor(model.name).map((issue) => (
-                        <OptionCard
-                          key={issue.key}
-                          multi
-                          selected={Boolean(answers.hardwareFaults[issue.key])}
-                          onClick={() =>
-                            set('hardwareFaults', { ...answers.hardwareFaults, [issue.key]: !answers.hardwareFaults[issue.key] })
-                          }
-                          art={<ConditionArt kind={issue.art} className="h-full w-auto" />}
-                          label={issue.label}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <SectionHeading
-                    title="Select all accessories you have"
-                    subtitle="Our price already includes the original charger and box. A small amount is taken off for each one that's missing."
-                  />
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                    {accessoriesFor(answers).map((acc) => (
-                      <OptionCard
-                        key={acc.key}
-                        multi
-                        selected={Boolean(answers[acc.key])}
-                        onClick={() => set(acc.key, !answers[acc.key])}
-                        art={<ConditionArt kind={acc.art} className="h-full w-auto" />}
-                        label={acc.label}
-                        hint={acc.hint}
-                      />
-                    ))}
-                  </div>
+              <div>
+                <SectionHeading title="Select all issues identified in your phone" subtitle="Skip this if everything works fine." />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                  {functionalIssuesFor(model.name).map((issue) => (
+                    <OptionCard
+                      key={issue.key}
+                      multi
+                      selected={Boolean(answers.hardwareFaults[issue.key])}
+                      onClick={() =>
+                        set('hardwareFaults', { ...answers.hardwareFaults, [issue.key]: !answers.hardwareFaults[issue.key] })
+                      }
+                      art={<ConditionArt kind={issue.art} className="h-full w-auto" />}
+                      label={issue.label}
+                    />
+                  ))}
                 </div>
-              </>
+              </div>
+            )}
+
+            {/* ---------- Accessories (page 4; the bill only for a phone under warranty) ---------- */}
+            {active === 'accessories' && (
+              <div>
+                <SectionHeading
+                  title="Select all accessories you have"
+                  subtitle="Our price already includes the original charger and box. A small amount is taken off for each one that's missing."
+                />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                  {accessoriesFor(answers).map((acc) => (
+                    <OptionCard
+                      key={acc.key}
+                      multi
+                      selected={Boolean(answers[acc.key])}
+                      onClick={() => set(acc.key, !answers[acc.key])}
+                      art={<ConditionArt kind={acc.art} className="h-full w-auto" />}
+                      label={acc.label}
+                      hint={acc.hint}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* ---------- Warranty condition (only for a phone under warranty) ---------- */}
