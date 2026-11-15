@@ -4,7 +4,7 @@ import { ConditionArtKind } from '../../components/sell/ConditionArt';
 export const EVAL_TABS = [
   { id: 'overall', label: 'Overall condition' },
   { id: 'physical', label: 'Physical condition' },
-  { id: 'functional', label: 'Functional & Accessories' },
+  { id: 'functional', label: 'Functional condition' },
   { id: 'warranty', label: 'Warranty condition' },
 ] as const;
 
@@ -39,8 +39,8 @@ export interface EvaluationAnswers {
   sidePanelCondition: string | null;
   // Functional
   hardwareFaults: Partial<Record<HardwareFaultKey, boolean>>;
-  // Accessories (bill only for a phone under warranty) & phone age
-  hasValidBill: boolean;
+  // Warranty & accessories
+  hasValidBill: boolean | null;
   deviceAge: string | null;
   hasOriginalCharger: boolean;
   hasOriginalBox: boolean;
@@ -58,7 +58,7 @@ export const emptyAnswers = (): EvaluationAnswers => ({
   hardwareFaults: {},
   hasOriginalCharger: false,
   hasOriginalBox: false,
-  hasValidBill: false,
+  hasValidBill: null,
   deviceAge: null,
 });
 
@@ -195,43 +195,24 @@ export const functionalIssuesFor = (modelName?: string): FunctionalIssue[] =>
         issue.key === 'batteryHealthBelow83' ? { ...issue, label: BATTERY_LABEL_NON_IPHONE } : issue
       );
 
-type AccessoryKey = 'hasOriginalCharger' | 'hasOriginalBox' | 'hasValidBill';
-
-export const ACCESSORIES: Array<{ key: AccessoryKey; label: string; hint: string; art: ConditionArtKind }> = [
+export const ACCESSORIES: Array<{ key: 'hasOriginalCharger' | 'hasOriginalBox'; label: string; hint: string; art: ConditionArtKind }> = [
   { key: 'hasOriginalCharger', label: 'Original charger', hint: 'Brand charger / cable', art: 'charger' },
   { key: 'hasOriginalBox', label: 'Box with same IMEI', hint: 'Original retail box', art: 'box' },
 ];
-const BILL_ACCESSORY = { key: 'hasValidBill' as const, label: 'Bill with same IMEI', hint: 'Purchase invoice', art: 'bill' as ConditionArtKind };
 
-export const DEVICE_AGE_OPTIONS: Array<{ id: string; label: string; hint?: string }> = [
-  { id: 'BELOW_3_MONTHS', label: 'Below 3 months', hint: 'Valid bill mandatory' },
-  { id: '3_TO_6_MONTHS', label: '3 to 6 months', hint: 'Valid bill mandatory' },
-  { id: '6_TO_11_MONTHS', label: '6 to 11 months', hint: 'Valid bill mandatory' },
+export const DEVICE_AGE_OPTIONS = [
+  { id: 'BELOW_3_MONTHS', label: 'Below 3 months' },
+  { id: '3_TO_6_MONTHS', label: '3 to 6 months' },
+  { id: '6_TO_11_MONTHS', label: '6 to 11 months' },
   { id: 'ABOVE_11_MONTHS', label: 'Above 11 months' },
 ];
 
 /**
- * Turncash-style flow:
- * - the warranty question (4) is asked only for a working phone with a working touchscreen and an
- *   original display;
- * - the bill (an accessory) and the phone's age (the Warranty step) only for a phone under warranty.
+ * Physical questions shown to the customer. Screen + touch-glass are always asked (also when the
+ * touchscreen is dead) so the inspection team gets the full picture; the backend simply doesn't
+ * stack those deductions on top of the dead-touchscreen price.
  */
-export const asksWarranty = (a: EvaluationAnswers) =>
-  a.isPhoneWorking === true && a.isTouchscreenWorking === true && a.isDisplayOriginal === true;
-export const underWarranty = (a: EvaluationAnswers) => asksWarranty(a) && a.hasValidWarranty === true;
-
-/** Accessories offered: charger and box for everyone, plus the bill for a phone under warranty. */
-export const accessoriesFor = (a: EvaluationAnswers) => (underWarranty(a) ? [...ACCESSORIES, BILL_ACCESSORY] : ACCESSORIES);
-
-/**
- * Physical questions shown to the customer. When the touchscreen doesn't work or the display isn't
- * original, the screen and touch-glass questions are skipped (the display is priced from those
- * answers instead); only the back and side panels are asked.
- */
-export const visiblePhysicalSections = (a: EvaluationAnswers): PhysicalSection[] =>
-  a.isTouchscreenWorking === false || a.isDisplayOriginal === false
-    ? PHYSICAL_SECTIONS.filter((s) => s.summaryGroup === 'Body')
-    : PHYSICAL_SECTIONS;
+export const visiblePhysicalSections = (_a: EvaluationAnswers): PhysicalSection[] => PHYSICAL_SECTIONS;
 
 export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => {
   switch (tab) {
@@ -239,30 +220,23 @@ export const isTabComplete = (tab: EvalTabId, a: EvaluationAnswers): boolean => 
       if (a.isPhoneWorking === false) return true;
       if (a.isPhoneWorking !== true) return false;
       if (a.isTouchscreenWorking === false) return true;
-      if (a.isTouchscreenWorking !== true) return false;
-      if (a.isDisplayOriginal === false) return true; // warranty question not asked
-      return a.isDisplayOriginal === true && a.hasValidWarranty !== null;
+      return a.isTouchscreenWorking === true && a.isDisplayOriginal !== null && a.hasValidWarranty !== null;
     case 'physical':
       return visiblePhysicalSections(a).every((s) => a[s.key] !== null);
     case 'functional':
-      return true; // no issues and no accessories are valid answers
+      return true; // no issues is a valid answer
     case 'warranty':
-      // Shown only for a phone under warranty; the phone's age is then required (it changes the price)
-      return !underWarranty(a) || a.deviceAge !== null;
+      // Phone age is asked only when the warranty is valid, and then it's required (it changes the price)
+      return a.hasValidBill !== null && (a.hasValidWarranty !== true || a.deviceAge !== null);
   }
 };
 
 /**
- * Tabs that apply:
- * - a phone that doesn't power on: overall, then its accessories (no physical or functional checks);
- * - the Warranty step only while a warranty is possible (dropped once the touchscreen doesn't work,
- *   the display isn't original or the customer says there's no warranty).
+ * Tabs that apply: a phone that doesn't power on skips the physical and functional checks and goes
+ * straight to warranty & accessories.
  */
-export const applicableTabs = (a: EvaluationAnswers): EvalTabId[] => {
-  if (a.isPhoneWorking === false) return ['overall', 'functional'];
-  const noWarranty = a.isTouchscreenWorking === false || a.isDisplayOriginal === false || a.hasValidWarranty === false;
-  return noWarranty ? ['overall', 'physical', 'functional'] : ['overall', 'physical', 'functional', 'warranty'];
-};
+export const applicableTabs = (a: EvaluationAnswers): EvalTabId[] =>
+  a.isPhoneWorking === false ? ['overall', 'warranty'] : ['overall', 'physical', 'functional', 'warranty'];
 
 export interface SummaryGroup {
   title: string;
@@ -288,12 +262,15 @@ export const buildSummary = (a: EvaluationAnswers, modelName?: string): SummaryG
   const faults = functionalIssuesFor(modelName).filter((f) => a.hardwareFaults[f.key]).map((f) => f.label);
   if (faults.length) groups.push({ title: 'Functional issues', items: faults });
 
-  // Same order as the steps: accessories (bill included for a phone under warranty), then phone age
-  const accessories = accessoriesFor(a).filter((x) => a[x.key]).map((x) => x.label);
+  // Same order as the Warranty condition step: accessories, then bill, then device age
+  const accessories = ACCESSORIES.filter((x) => a[x.key]).map((x) => x.label);
   if (accessories.length) groups.push({ title: 'Accessories', items: accessories });
 
-  const age = underWarranty(a) ? DEVICE_AGE_OPTIONS.find((o) => o.id === a.deviceAge)?.label : undefined;
-  if (age) groups.push({ title: 'Warranty', items: [`Device age: ${age}`] });
+  const warranty: string[] = [];
+  if (a.hasValidBill !== null) warranty.push(a.hasValidBill ? 'Valid bill with same IMEI' : 'No valid bill');
+  const age = a.hasValidWarranty === true ? DEVICE_AGE_OPTIONS.find((o) => o.id === a.deviceAge)?.label : undefined;
+  if (age) warranty.push(`Device age: ${age}`);
+  if (warranty.length) groups.push({ title: 'Warranty', items: warranty });
 
   return groups;
 };
@@ -304,25 +281,21 @@ export const buildConditionPayload = (a: EvaluationAnswers) => {
   const touch = working ? a.isTouchscreenWorking !== false : false;
   const showScreen = working && touch;
   const hardwareFaults = working ? { ...a.hardwareFaults } : {};
-  // The bill is only asked for a phone under warranty
-  const hasValidBill = underWarranty(a) && a.hasValidBill === true;
+  const hasValidBill = a.hasValidBill === true;
 
   const basicQuestions = {
     isPhoneWorking: working,
     isTouchscreenWorking: touch,
     isDisplayOriginal: showScreen ? a.isDisplayOriginal !== false : false,
-    // false when the question wasn't asked (display not original, touchscreen or phone not working)
-    hasValidWarranty: underWarranty(a),
+    hasValidWarranty: showScreen ? a.hasValidWarranty === true : false,
   };
 
   return {
     basicQuestions,
     ...(working
       ? {
-          // Only answers to questions that were shown (screen + glass are skipped when the display
-          // isn't original or the touchscreen doesn't work)
-          screenDisplayCondition: (showScreen && a.isDisplayOriginal !== false && a.screenDisplayCondition) || 'NO_SPOT',
-          touchGlassCondition: (showScreen && a.isDisplayOriginal !== false && a.touchGlassCondition) || 'NO_SCRATCH',
+          screenDisplayCondition: a.screenDisplayCondition || 'NO_SPOT',
+          touchGlassCondition: a.touchGlassCondition || 'NO_SCRATCH',
         }
       : {}),
     backPanelCondition: working ? a.backPanelCondition || 'NO_DEFECTS' : undefined,
@@ -335,6 +308,6 @@ export const buildConditionPayload = (a: EvaluationAnswers) => {
     box_same_imei: a.hasOriginalBox,
     original_charger: a.hasOriginalCharger,
     // Only sent when the age question was shown (valid warranty), so a stale answer never changes the price
-    deviceAge: underWarranty(a) ? a.deviceAge || undefined : undefined,
+    deviceAge: basicQuestions.hasValidWarranty ? a.deviceAge || undefined : undefined,
   };
 };
