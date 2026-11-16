@@ -171,7 +171,7 @@ export const DoorstepPickupPage: React.FC = () => {
 
   if (successBooking) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-6 animate-fade-in">
+      <div className="w-full max-w-lg mx-auto px-4 py-16 text-center space-y-6 animate-fade-in">
         <div className="w-20 h-20 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto dark:bg-amber-400/10 dark:text-amber-300">
           <CheckCircle2 className="w-10 h-10" />
         </div>
@@ -223,7 +223,7 @@ export const DoorstepPickupPage: React.FC = () => {
   // 1. Unauthenticated Gate: Show dedicated Login Required screen
   if (!user) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16 sm:py-24 text-center space-y-6 animate-fade-in">
+      <div className="w-full max-w-md mx-auto px-4 py-16 sm:py-24 text-center space-y-6 animate-fade-in">
         <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto dark:bg-amber-400/10 dark:text-amber-300">
           <ShieldCheck className="w-8 h-8" />
         </div>
@@ -280,7 +280,7 @@ export const DoorstepPickupPage: React.FC = () => {
   // 2. Missing Device Assessment: Guide user to select a device first
   if (!bookingData) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16 sm:py-24 text-center space-y-6 animate-fade-in">
+      <div className="w-full max-w-md mx-auto px-4 py-16 sm:py-24 text-center space-y-6 animate-fade-in">
         <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
           <Smartphone className="w-8 h-8 text-amber-500" />
         </div>
@@ -306,7 +306,7 @@ export const DoorstepPickupPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 animate-fade-in">
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 animate-fade-in">
       <div className="text-center space-y-1">
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-2">
           <Truck className="w-6 h-6 text-amber-500" /> Book Doorstep Pickup

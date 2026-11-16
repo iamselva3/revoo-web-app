@@ -18,6 +18,7 @@ import {
   visiblePhysicalSections,
 } from '../evaluation';
 import { DeviceImage, OptionCard, formatCapacity, formatINR, fullDeviceName } from './shared';
+import { useBottomBarHeight } from '../../../hooks/useBottomBarHeight';
 
 interface EvaluationFlowProps {
   brandName?: string;
@@ -131,6 +132,9 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
   const [summaryOpen, setSummaryOpen] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // The action bar is fixed on phones: the page leaves room for it and the chat button sits above it
+  const actionBarRef = useRef<HTMLDivElement>(null);
+  useBottomBarHeight(actionBarRef);
 
   // If the gatekeeper answer removes the active tab, fall back to the first one
   useEffect(() => {
@@ -259,7 +263,7 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
             <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-amber-500 transition-all duration-500" style={{ width: `${Math.max(6, progress)}%` }} />
           </div>
 
-          <div className="mt-6 space-y-8 pb-28 lg:pb-0">
+          <div className="mt-6 space-y-8">
             {/* ---------- Overall condition ---------- */}
             {active === 'overall' && (
               <div className="space-y-4">
@@ -383,7 +387,7 @@ export const EvaluationFlow: React.FC<EvaluationFlowProps> = ({
           </div>
 
           {/* Actions — inline on desktop, sticky bar on phones */}
-          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur-md safe-area-bottom dark:border-neutral-900 dark:bg-black/90 lg:static lg:mt-8 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none dark:lg:bg-transparent">
+          <div ref={actionBarRef} className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur-md safe-area-bottom dark:border-neutral-900 dark:bg-black/90 lg:static lg:mt-8 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none dark:lg:bg-transparent">
             {/* Mobile summary drawer */}
             <div className="lg:hidden">
               <button

@@ -62,7 +62,7 @@ export const ProductDetailPage: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="max-w-lg mx-auto py-20 text-center space-y-4">
+      <div className="w-full max-w-lg mx-auto py-20 text-center space-y-4">
         <h2 className="text-xl font-bold text-slate-800">Product Not Found</h2>
         <button
           onClick={() => navigate('/buy')}
@@ -98,7 +98,7 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/buy')}
@@ -197,7 +197,7 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Price Box */}
           <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 space-y-2">
-            <div className="flex items-baseline gap-3">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-3xl font-black text-slate-900">
                 ₹{product.salePrice.toLocaleString('en-IN')}
               </span>

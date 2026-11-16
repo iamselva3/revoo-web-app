@@ -64,11 +64,11 @@ export const BuyStorePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-emerald-900 via-slate-950 to-slate-900 text-white rounded-3xl p-6 sm:p-10 border border-emerald-800/40 relative overflow-hidden shadow-xl">
         <div className="max-w-xl space-y-2 relative z-10">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               Genie Certified Refurbished
             </span>
@@ -94,7 +94,7 @@ export const BuyStorePage: React.FC = () => {
       )}
 
       {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
         {/* Search */}
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -108,7 +108,7 @@ export const BuyStorePage: React.FC = () => {
         </div>
 
         {/* Brand Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 scrollbar-none">
+        <div className="flex min-w-0 max-w-full items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 scrollbar-none">
           {brands.map((b) => (
             <button
               key={b}

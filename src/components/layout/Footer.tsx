@@ -32,7 +32,8 @@ const linkClass =
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="border-t border-slate-200 bg-white pb-24 pt-12 dark:border-neutral-900 dark:bg-neutral-950 lg:pb-10">
+    // On phones the end leaves room for the bottom menu and the chat button
+    <footer className="border-t border-slate-200 bg-white pb-[calc(var(--bottom-bar,0px)+5rem)] pt-12 dark:border-neutral-900 dark:bg-neutral-950 lg:pb-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Promise strip */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">

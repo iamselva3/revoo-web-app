@@ -300,7 +300,8 @@ export const GenieAiAssistant: React.FC = () => {
     <>
       {/* Floating Right Corner Trigger */}
       {!isOpen && (
-        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2 group">
+        // On phones it sits just above whatever bar is fixed at the bottom (menu or sell action bar)
+        <div className="fixed bottom-[calc(var(--bottom-bar,0px)+0.75rem)] right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2 group">
           {/* Banner appears only when hovered */}
           <div className="pointer-events-none opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 px-3 py-1.5 rounded-full bg-white dark:bg-[#15102a] text-slate-800 dark:text-white border border-slate-200/90 dark:border-violet-900/60 shadow-lg text-xs font-bold tracking-wide flex items-center gap-1.5 whitespace-nowrap">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />

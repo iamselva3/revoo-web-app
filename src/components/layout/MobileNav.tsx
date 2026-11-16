@@ -1,14 +1,19 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Smartphone, Truck, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useBottomBarHeight } from '../../hooks/useBottomBarHeight';
 
 export const MobileNav: React.FC = () => {
   const location = useLocation();
   const { user, openAuthModal } = useAuth();
+  const navRef = useRef<HTMLElement>(null);
 
   // Hide during the sell flow so its own sticky action bar has the full width
-  if (location.pathname === '/sell') return null;
+  const hidden = location.pathname === '/sell';
+  // Pages leave room for the menu at their end; the chat button sits above it
+  useBottomBarHeight(navRef, !hidden);
+  if (hidden) return null;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -25,6 +30,7 @@ export const MobileNav: React.FC = () => {
 
   return (
     <nav
+      ref={navRef}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md dark:border-neutral-900 dark:bg-black/90 lg:hidden safe-area-bottom"
       aria-label="Bottom navigation"
     >

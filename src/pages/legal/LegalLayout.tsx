@@ -258,7 +258,7 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ icon: Icon, title, sum
 
   return (
     <div className="w-full">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {/* ---------------------------------------------------------------- Header */}
         <header className="mb-8 max-w-3xl sm:mb-10">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">
