@@ -14,6 +14,11 @@ const POPULAR_CITIES: Array<{ city: string; pincode: string }> = [
 
 type Candidate = Omit<SavedLocation, 'savedAt'>;
 
+// Further off than this, the PIN code may be a neighbouring one: ask the customer to check it
+const APPROXIMATE_M = 1000;
+const isApproximate = (loc: Candidate | null) =>
+  Boolean(loc && loc.source === 'gps' && loc.accuracyM && loc.accuracyM > APPROXIMATE_M);
+
 export const LocationPicker: React.FC = () => {
   const { isPickerOpen, closePicker, location, saveLocation, detectLocation, resolvePincode, isDetecting } =
     useUserLocation();
@@ -174,6 +179,12 @@ export const LocationPicker: React.FC = () => {
                       .filter(Boolean)
                       .join(' · ')}
                   </p>
+                  {isApproximate(candidate) && (
+                    <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+                      Your device could only find you roughly (within ~{Math.round((candidate.accuracyM || 0) / 1000)}&nbsp;km).
+                      Please check the pincode, or type yours above.
+                    </p>
+                  )}
                   {outsideService ? (
                     <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
                       Doorstep pickup is currently available across {SERVICE_STATE}. We'll still save this so you can see prices.
@@ -265,6 +276,8 @@ export const LocationPrompt: React.FC = () => {
       const found = await detectLocation();
       saveLocation(found);
       dismiss();
+      // A rough fix may land on the next PIN code: let the customer check it
+      if (isApproximate(found)) openPicker();
     } catch (err: any) {
       setError(err?.message || "We couldn't detect your location.");
     }

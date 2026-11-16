@@ -14,6 +14,8 @@ export interface ReverseGeocodeResult {
   state?: string;
   district?: string;
   area?: string;
+  /** Which service answered: Mappls is the most precise for Indian addresses */
+  source?: 'mappls' | 'bigdatacloud' | 'nominatim';
 }
 
 const FALLBACK_STATES = [
@@ -80,11 +82,31 @@ export const geoApi = {
   },
 
   /**
-   * Turns GPS coordinates into a PIN code (+ area names). Uses BigDataCloud's free client-side
-   * endpoint, then OpenStreetMap Nominatim as a fallback when no postcode comes back.
+   * Turns GPS coordinates into a PIN code (+ area names). Asks Mappls (MapmyIndia) through our
+   * server first, as its Indian address data is the most precise. When Mappls isn't set up, can't
+   * be reached or has no PIN code there, BigDataCloud's free endpoint and then OpenStreetMap
+   * Nominatim fill in what's missing.
    */
   reverseGeocode: async (lat: number, lng: number): Promise<ReverseGeocodeResult> => {
     const result: ReverseGeocodeResult = {};
+
+    try {
+      const res = await apiClient.get('/geo/reverse', { params: { lat, lng }, timeout: 8000 });
+      const m: any = res.data?.data;
+      if (m) {
+        result.pincode = cleanPincode(m.pincode);
+        result.city = m.city || undefined;
+        result.state = m.state || undefined;
+        result.district = m.district || undefined;
+        result.area = m.area || undefined;
+        if (result.pincode) {
+          result.source = 'mappls';
+          return result;
+        }
+      }
+    } catch {
+      // server asleep or Mappls down: use the free providers
+    }
 
     try {
       const t = withTimeout(7000);
@@ -96,12 +118,13 @@ export const geoApi = {
       if (res.ok) {
         const data: any = await res.json();
         result.pincode = cleanPincode(data.postcode);
-        result.city = data.city || data.locality || undefined;
-        result.state = data.principalSubdivision || undefined;
-        result.area = data.locality && data.locality !== data.city ? data.locality : undefined;
+        if (result.pincode) result.source = 'bigdatacloud';
+        result.city = result.city || data.city || data.locality || undefined;
+        result.state = result.state || data.principalSubdivision || undefined;
+        result.area = result.area || (data.locality && data.locality !== data.city ? data.locality : undefined);
         const admin: any[] = data.localityInfo?.administrative || [];
         const district = admin.find((a) => a.adminLevel === 5) || admin.find((a) => /district/i.test(a.description || ''));
-        result.district = district?.name?.replace(/\s+district$/i, '') || undefined;
+        result.district = result.district || district?.name?.replace(/\s+district$/i, '') || undefined;
       }
     } catch {
       // fall through to Nominatim
@@ -119,6 +142,7 @@ export const geoApi = {
           const data: any = await res.json();
           const a = data.address || {};
           result.pincode = cleanPincode(a.postcode);
+          if (result.pincode) result.source = 'nominatim';
           result.city = result.city || a.city || a.town || a.village || a.county || undefined;
           result.state = result.state || a.state || undefined;
           result.district = result.district || a.state_district?.replace(/\s+district$/i, '') || undefined;
