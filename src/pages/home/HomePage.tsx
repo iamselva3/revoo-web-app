@@ -77,7 +77,8 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     setIsPageLoading(true);
-    Promise.all([catalogueApi.getBrands().catch(() => []), catalogueApi.getReviews('sell')])
+    // Top brands open the phone flow: phone brands only
+    Promise.all([catalogueApi.getBrands('phone').catch(() => []), catalogueApi.getReviews('sell')])
       .then(([brandData, reviewData]) => {
         setBrands(brandData);
         setReviews(reviewData);

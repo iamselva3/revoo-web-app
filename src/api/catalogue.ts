@@ -20,8 +20,9 @@ export const catalogueApi = {
     }
   },
 
-  getBrands: async (): Promise<Brand[]> => {
-    const res = await apiClient.get('/catalogue/brands');
+  /** Brands; with a category (phone / laptop / tablet / tv) only the brands that sell that kind of device. */
+  getBrands: async (category?: string): Promise<Brand[]> => {
+    const res = await apiClient.get('/catalogue/brands', { params: category ? { category } : undefined });
     return res.data?.data || [];
   },
 

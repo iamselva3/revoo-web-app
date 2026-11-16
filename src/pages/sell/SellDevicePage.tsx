@@ -54,18 +54,25 @@ export const SellDevicePage: React.FC = () => {
   const [modelData, setModelData] = useState<ModelWithVariants | null>(null);
   const [isLoadingModel, setIsLoadingModel] = useState(false);
 
+  // Brands of the chosen device type only (phones, laptops, tablets and TVs are listed separately)
   useEffect(() => {
+    let cancelled = false;
     setIsPageLoading(true);
+    setIsLoadingBrands(true);
     catalogueApi
-      .getBrands()
-      .then(setBrands)
-      .catch(() => setBrands([]))
+      .getBrands(category)
+      .then((list) => !cancelled && setBrands(list))
+      .catch(() => !cancelled && setBrands([]))
       .finally(() => {
+        if (cancelled) return;
         setIsLoadingBrands(false);
         setIsPageLoading(false);
       });
-    return () => setIsPageLoading(false);
-  }, [setIsPageLoading]);
+    return () => {
+      cancelled = true;
+      setIsPageLoading(false);
+    };
+  }, [setIsPageLoading, category]);
 
   const selectedBrand = useMemo(() => {
     if (!brandParam) return null;
