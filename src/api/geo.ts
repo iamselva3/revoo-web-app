@@ -8,6 +8,19 @@ export interface PincodeLookupResponse {
   serviceable?: boolean;
 }
 
+/** A PIN code's city, taluk, district, state and the areas inside it (Mappls, then India Post). */
+export interface PincodeAreas {
+  pincode: string;
+  city?: string;
+  district?: string;
+  subDistrict?: string;
+  state?: string;
+  areas: string[];
+}
+
+// Each PIN code is asked once per visit
+const areasCache = new Map<string, Promise<PincodeAreas | null>>();
+
 export interface ReverseGeocodeResult {
   pincode?: string;
   city?: string;
@@ -79,6 +92,25 @@ export const geoApi = {
     } catch {
       return null;
     }
+  },
+
+  /** Areas to choose from for a typed PIN code; null when none are known or the server is unreachable. */
+  pincodeAreas: (pincode: string): Promise<PincodeAreas | null> => {
+    if (!/^\d{6}$/.test(pincode)) return Promise.resolve(null);
+    const cached = areasCache.get(pincode);
+    if (cached) return cached;
+    const request = apiClient
+      .get(`/geo/areas/${pincode}`, { timeout: 12000 })
+      .then((res) => {
+        const d: any = res.data?.data;
+        return d ? { ...d, areas: Array.isArray(d.areas) ? d.areas : [] } : null;
+      })
+      .catch(() => {
+        areasCache.delete(pincode); // try again next time
+        return null;
+      });
+    areasCache.set(pincode, request);
+    return request;
   },
 
   /**

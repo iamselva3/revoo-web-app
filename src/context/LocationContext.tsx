@@ -6,6 +6,8 @@ export interface SavedLocation {
   city: string;
   state: string;
   district?: string;
+  /** Taluk */
+  subDistrict?: string;
   area?: string;
   source: 'gps' | 'pincode';
   /** GPS only: how far off the fix may be, in metres */
@@ -45,9 +47,9 @@ const readSaved = (): SavedLocation | null => {
 
 const geolocationErrorMessage = (err: GeolocationPositionError | Error): string => {
   if ('code' in err) {
-    if (err.code === 1) return 'Location permission is blocked. Allow it in your browser, or enter your pincode below.';
-    if (err.code === 2) return "We couldn't get a GPS fix. Please enter your pincode instead.";
-    if (err.code === 3) return 'Finding your location took too long. Please try again or enter your pincode.';
+    if (err.code === 1) return 'Location permission is blocked. Allow it in your browser settings, or enter your pincode below.';
+    if (err.code === 2) return "Your device's location seems to be off. Turn on Location, or enter your pincode below.";
+    if (err.code === 3) return "We couldn't find you this time. Turn on Location and Wi-Fi and try again, or enter your pincode below.";
   }
   return err.message || "We couldn't detect your location. Please enter your pincode.";
 };
@@ -56,44 +58,72 @@ const geolocationErrorMessage = (err: GeolocationPositionError | Error): string 
 const GOOD_FIX_M = 50;
 // After the first fix, keep listening this long for a sharper one
 const SETTLE_MS = 4000;
-const GIVE_UP_MS = 15000;
+// No fix at all by then: give up
+const GIVE_UP_MS = 20000;
+// The quick Wi-Fi / mobile-tower fix may be one the device took in the last 10 minutes
+const QUICK_FIX_MAX_AGE_MS = 10 * 60 * 1000;
 
 /**
- * The most accurate GPS fix we can get in a few seconds. Phones often answer first with a rough
- * mobile-tower / Wi-Fi guess (hundreds of metres off, sometimes the next PIN code) and sharpen it
- * a moment later, so we keep listening and take the best fix: done as soon as one is within 50 m,
- * otherwise the best one 4 s after the first. Never reuses an old cached position.
+ * The best location we can get in a few seconds, from two requests at once:
+ * - a quick Wi-Fi / mobile-tower fix (answers in a second or two, even indoors where GPS is slow);
+ * - a precise GPS fix that keeps sharpening.
+ * Done as soon as a fix is within 50 m, otherwise the best one 4 s after the first. Only fails when
+ * both requests fail (or nothing arrives in 20 s), so a slow GPS no longer means "took too long".
  */
+/**
+ * How far off a fix may be now: its accuracy, plus how far someone could have walked since an older
+ * fix was taken (1 m per second after the first 30 s), so a precise but stale cached fix never wins.
+ */
+const uncertaintyM = (pos: GeolocationPosition) =>
+  pos.coords.accuracy + Math.max(0, (Date.now() - pos.timestamp) / 1000 - 30);
+
 const getAccuratePosition = () =>
   new Promise<GeolocationPosition>((resolve, reject) => {
     let best: GeolocationPosition | null = null;
     let done = false;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let watchId: number | undefined;
+    let quickFailed = false;
+    let preciseFailed = false;
+    let lastError: GeolocationPositionError | undefined;
 
-    const finish = (err?: GeolocationPositionError | Error) => {
+    const finish = (err?: GeolocationPositionError) => {
       if (done) return;
       done = true;
       if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
       clearTimeout(settleTimer);
       clearTimeout(giveUpTimer);
       if (best) resolve(best);
-      else reject(err || Object.assign(new Error('timeout'), { code: 3 }));
+      else reject(err || lastError || Object.assign(new Error('timeout'), { code: 3 }));
     };
     const giveUpTimer = setTimeout(() => finish(), GIVE_UP_MS);
 
-    watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (!best || pos.coords.accuracy < best.coords.accuracy) best = pos;
-        if (pos.coords.accuracy <= GOOD_FIX_M) finish();
-        else if (!settleTimer) settleTimer = setTimeout(() => finish(), SETTLE_MS);
-      },
-      // Blocked, or no fix at all: stop. An error after a fix keeps the fix.
-      (err) => {
-        if (err.code === 1 || !best) finish(err);
-      },
-      { enableHighAccuracy: true, timeout: GIVE_UP_MS, maximumAge: 0 }
-    );
+    const onFix = (pos: GeolocationPosition) => {
+      if (done) return;
+      if (!best || uncertaintyM(pos) < uncertaintyM(best)) best = pos;
+      if (uncertaintyM(pos) <= GOOD_FIX_M) finish();
+      else if (!settleTimer) settleTimer = setTimeout(() => finish(), SETTLE_MS);
+    };
+    // Blocked: stop at once. Otherwise wait for the other request; an error after a fix keeps the fix.
+    const onError = (which: 'quick' | 'precise') => (err: GeolocationPositionError) => {
+      if (done) return;
+      lastError = err;
+      if (err.code === 1) return finish(err);
+      if (which === 'quick') quickFailed = true;
+      else preciseFailed = true;
+      if (quickFailed && preciseFailed && !best) finish(err);
+    };
+
+    navigator.geolocation.getCurrentPosition(onFix, onError('quick'), {
+      enableHighAccuracy: false,
+      timeout: 10000,
+      maximumAge: QUICK_FIX_MAX_AGE_MS,
+    });
+    watchId = navigator.geolocation.watchPosition(onFix, onError('precise'), {
+      enableHighAccuracy: true,
+      timeout: GIVE_UP_MS,
+      maximumAge: 0,
+    });
     if (done) navigator.geolocation.clearWatch(watchId);
   });
 
@@ -149,7 +179,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw new Error(geolocationErrorMessage(err));
       });
 
-      const { latitude, longitude, accuracy } = position.coords;
+      const { latitude, longitude } = position.coords;
+      const accuracy = uncertaintyM(position);
       const geo = await geoApi.reverseGeocode(latitude, longitude);
       if (!geo.pincode) {
         throw new Error("We found you, but couldn't match a pincode. Please enter it below.");

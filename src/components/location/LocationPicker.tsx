@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation as useRouterLocation } from 'react-router-dom';
 import { Crosshair, Loader2, MapPin, X, CheckCircle2, Info, ArrowRight } from 'lucide-react';
 import { SavedLocation, SERVICE_STATE, useUserLocation } from '../../context/LocationContext';
+import { geoApi } from '../../api/geo';
 
 const POPULAR_CITIES: Array<{ city: string; pincode: string }> = [
   { city: 'Chennai', pincode: '600001' },
@@ -26,6 +27,40 @@ export const LocationPicker: React.FC = () => {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [isLooking, setIsLooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [areas, setAreas] = useState<string[]>([]);
+  const [areasLoading, setAreasLoading] = useState(false);
+
+  // A typed pincode (or a rough GPS fix) gets the list of areas inside it to choose from, and the
+  // taluk / district from Mappls, so the saved location says more than a bare number
+  const needsAreas = Boolean(candidate && (candidate.source === 'pincode' || isApproximate(candidate)));
+  const candidatePin = candidate?.pincode;
+  useEffect(() => {
+    setAreas([]);
+    if (!isPickerOpen || !needsAreas || !candidatePin) return;
+    let live = true;
+    setAreasLoading(true);
+    geoApi.pincodeAreas(candidatePin).then((info) => {
+      if (!live) return;
+      setAreasLoading(false);
+      if (!info) return;
+      setAreas(info.areas);
+      setCandidate((c) =>
+        c && c.pincode === info.pincode
+          ? {
+              ...c,
+              city: c.source === 'pincode' ? info.city || c.city : c.city || info.city || '',
+              district: c.district || info.district,
+              subDistrict: c.subDistrict || info.subDistrict,
+              state: c.state || info.state || '',
+            }
+          : c
+      );
+    });
+    return () => {
+      live = false;
+      setAreasLoading(false);
+    };
+  }, [isPickerOpen, needsAreas, candidatePin]);
 
   useEffect(() => {
     if (!isPickerOpen) return;
@@ -175,10 +210,45 @@ export const LocationPicker: React.FC = () => {
                     {[candidate.area, candidate.city].filter(Boolean).join(', ') || candidate.district}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-neutral-400">
-                    {[candidate.district !== candidate.city ? candidate.district : null, candidate.state, candidate.pincode]
+                    {[
+                      candidate.subDistrict && candidate.subDistrict !== candidate.city ? `${candidate.subDistrict} taluk` : null,
+                      candidate.district !== candidate.city ? candidate.district : null,
+                      candidate.state,
+                      candidate.pincode,
+                    ]
                       .filter(Boolean)
                       .join(' · ')}
                   </p>
+                  {needsAreas && (areasLoading || areas.length > 0) && (
+                    <div className="mt-3">
+                      <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-neutral-300">
+                        Choose your area
+                        {areasLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />}
+                      </p>
+                      {areas.length > 0 && (
+                        <div className="mt-2 flex max-h-36 flex-wrap gap-1.5 overflow-y-auto pr-1">
+                          {areas.map((a) => {
+                            const selected = candidate.area === a;
+                            return (
+                              <button
+                                key={a}
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() => setCandidate((c) => (c ? { ...c, area: selected ? undefined : a } : c))}
+                                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                                  selected
+                                    ? 'border-amber-400 bg-amber-100 text-ink dark:border-amber-400 dark:bg-amber-400/20 dark:text-amber-100'
+                                    : 'border-slate-200 text-slate-600 hover:border-amber-400 hover:text-ink dark:border-neutral-800 dark:text-neutral-300'
+                                }`}
+                              >
+                                {a}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {isApproximate(candidate) && (
                     <p className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300">
                       Your device could only find you roughly (within ~{Math.round((candidate.accuracyM || 0) / 1000)}&nbsp;km).
@@ -284,7 +354,8 @@ export const LocationPrompt: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-x-3 bottom-20 z-40 sm:inset-x-auto sm:left-6 sm:bottom-6 sm:w-[360px] animate-slide-up lg:bottom-6">
+    // Just above the phone bottom menu, and above the chat button so it never covers "Enter pincode"
+    <div className="fixed inset-x-3 bottom-[calc(var(--bottom-bar,0px)+0.75rem)] z-[55] sm:inset-x-auto sm:left-6 sm:bottom-6 sm:w-[360px] animate-slide-up lg:bottom-6">
       <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-neutral-800 dark:bg-neutral-950">
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-300">

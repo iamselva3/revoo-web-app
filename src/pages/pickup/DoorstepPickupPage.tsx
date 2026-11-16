@@ -31,6 +31,8 @@ export const DoorstepPickupPage: React.FC = () => {
   const [phone, setPhone] = useState<string>('');
   const [addressLine1, setAddressLine1] = useState<string>('');
   const [addressLine2, setAddressLine2] = useState<string>('');
+  // Areas inside the entered pincode (Mappls / India Post), offered as suggestions for Area / Locality
+  const [areaOptions, setAreaOptions] = useState<string[]>([]);
   const [pincode, setPincode] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [state, setState] = useState<string>('Tamil Nadu');
@@ -90,6 +92,16 @@ export const DoorstepPickupPage: React.FC = () => {
       setLocationError(err?.message || "We couldn't detect your location. Please type your pincode.");
     }
   };
+
+  useEffect(() => {
+    setAreaOptions([]);
+    if (!/^\d{6}$/.test(pincode)) return;
+    let live = true;
+    geoApi.pincodeAreas(pincode).then((info) => live && setAreaOptions(info?.areas || []));
+    return () => {
+      live = false;
+    };
+  }, [pincode]);
 
   // Load cities whenever state changes
   useEffect(() => {
@@ -417,11 +429,18 @@ export const DoorstepPickupPage: React.FC = () => {
               <label className="block text-xs font-bold text-slate-700 mb-1">Area / Locality (optional)</label>
               <input
                 type="text"
-                placeholder="e.g. Anna Nagar"
+                placeholder={areaOptions.length ? `e.g. ${areaOptions[0]}` : 'e.g. Anna Nagar'}
+                list="pickup-area-options"
+                autoComplete="off"
                 value={addressLine2}
                 onChange={(e) => setAddressLine2(e.target.value)}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
+              <datalist id="pickup-area-options">
+                {areaOptions.map((a) => (
+                  <option key={a} value={a} />
+                ))}
+              </datalist>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
