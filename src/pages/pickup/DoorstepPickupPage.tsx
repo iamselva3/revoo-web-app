@@ -29,6 +29,8 @@ export const DoorstepPickupPage: React.FC = () => {
   // Address fields
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
+  // A second number the agent can call if the first one doesn't answer (optional)
+  const [altPhone, setAltPhone] = useState<string>('');
   const [addressLine1, setAddressLine1] = useState<string>('');
   const [addressLine2, setAddressLine2] = useState<string>('');
   // Areas inside the entered pincode (Mappls / India Post), offered as suggestions for Area / Locality
@@ -138,6 +140,10 @@ export const DoorstepPickupPage: React.FC = () => {
     }
 
     setErrorMsg(null);
+    if (altPhone && altPhone === phone) {
+      setErrorMsg('Your alternative number is the same as your phone number. Enter a different number, or leave it empty.');
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -151,6 +157,7 @@ export const DoorstepPickupPage: React.FC = () => {
         pickupAddress: {
           fullName,
           phone,
+          alternatePhone: altPhone || undefined,
           addressLine1,
           addressLine2,
           city,
@@ -391,6 +398,30 @@ export const DoorstepPickupPage: React.FC = () => {
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '').slice(0, 10))}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
+            </div>
+            <div>
+              <label htmlFor="pickup-alt-phone" className="block text-xs font-bold text-slate-700 mb-1">
+                Alternative phone number <span className="font-medium text-slate-400">(optional)</span>
+              </label>
+              <input
+                id="pickup-alt-phone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                pattern="[6-9][0-9]{9}"
+                title="Enter a 10-digit mobile number"
+                maxLength={10}
+                placeholder="Another number to reach you"
+                value={altPhone}
+                onChange={(e) => setAltPhone(e.target.value.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '').slice(0, 10))}
+                aria-describedby="pickup-alt-phone-hint"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+              <p id="pickup-alt-phone-hint" className={`mt-1 text-[11px] ${altPhone && altPhone === phone ? 'font-semibold text-amber-700' : 'text-slate-500'}`}>
+                {altPhone && altPhone === phone
+                  ? 'This is the same as your phone number. Enter a different one, or leave it empty.'
+                  : "We'll call this if we can't reach you on your main number."}
+              </p>
             </div>
           </div>
         </div>
