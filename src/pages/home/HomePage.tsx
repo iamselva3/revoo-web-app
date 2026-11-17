@@ -59,13 +59,14 @@ const WHY = [
 ];
 
 const SectionHeader: React.FC<{ title: string; subtitle?: string; action?: React.ReactNode }> = ({ title, subtitle, action }) => (
-  <div className="mb-3 flex items-end justify-between gap-4 sm:mb-6">
+  <div className="mb-3 flex items-start justify-between gap-4 sm:mb-6 sm:items-end">
     {/* min-w-0: a long title wraps, so the action ("View all") always stays on screen */}
     <div className="min-w-0 flex-1">
       <h2 className="text-xl font-bold tracking-tight text-ink dark:text-white sm:text-2xl">{title}</h2>
       {subtitle && <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400">{subtitle}</p>}
     </div>
-    {action}
+    {/* Phones: on the title line, clear of the floating Genie AI button in the corner */}
+    {action && <div className="shrink-0 pt-1 sm:pt-0">{action}</div>}
   </div>
 );
 
