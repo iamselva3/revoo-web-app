@@ -72,23 +72,36 @@ const TextBanner: React.FC<{ banner: Banner }> = ({ banner: b }) => {
 const Slide: React.FC<{ banner: Banner; eager: boolean }> = ({ banner: b, eager }) => {
   const [broken, setBroken] = useState(false);
   const label = b.title?.trim() || b.tag?.trim() || 'Genie offer';
-  // A photo banner is shown as it is, like in the app: the poster carries its own text
+  // A photo banner is shown as it is, like in the app: the poster carries its own text. On
+  // computers the banner is wider (3 : 1) than the photo (7 : 3): the whole photo stays in view and
+  // a soft blurred copy of it fills the extra width, so nothing the admin framed is cut off.
+  const src = b.imageUrl ? resolveImageUrl(b.imageUrl) : '';
   const body =
     b.imageUrl && !broken ? (
-      <img
-        src={resolveImageUrl(b.imageUrl)}
-        alt={label}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        draggable={false}
-        onError={() => setBroken(true)}
-        className="h-full w-full object-cover"
-      />
+      <span className="relative block h-full w-full">
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          draggable={false}
+          className="absolute inset-0 hidden h-full w-full scale-110 object-cover opacity-90 blur-2xl lg:block"
+        />
+        <img
+          src={src}
+          alt={label}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          draggable={false}
+          onError={() => setBroken(true)}
+          className="relative h-full w-full object-cover lg:object-contain"
+        />
+      </span>
     ) : (
       <TextBanner banner={b} />
     );
   const frame =
-    'block aspect-[7/3] w-full overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/10 sm:rounded-3xl';
+    'block aspect-[7/3] w-full overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/10 sm:rounded-3xl lg:aspect-[3/1]';
   const clickable = `${frame} transition-shadow hover:shadow-card-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/60`;
   const link = bannerLink(b.linkUrl);
   if (link.href) {
@@ -112,9 +125,9 @@ const AUTO_MS = 5000;
 
 /**
  * The admin's banners as a strip under the menu bar, one banner per page on every screen (swipe on
- * phones, arrows on computers). Always the app's shape (7 : 3), the same frame the admin sets with
- * "Adjust", so the picture is never cropped differently; on wide screens it is centred, at most
- * 900 px wide. Moves on its own every 5 s, but not while hovered, touched or focused.
+ * phones, arrows on computers), always the full width of the page. Phones and tablets use the
+ * app's shape (7 : 3, the frame the admin sets with "Adjust"); computers a wider 3 : 1 so the banner
+ * isn't too tall. Moves on its own every 5 s, but not while hovered, touched or focused.
  */
 export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -195,7 +208,7 @@ export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
       className="mx-auto w-full max-w-7xl px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5 lg:px-8"
     >
       <div
-        className="relative mx-auto max-w-[900px]"
+        className="relative"
         onPointerEnter={(e) => {
           if (e.pointerType === 'mouse') hovered.current = true;
         }}
