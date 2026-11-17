@@ -43,7 +43,7 @@ const TextBanner: React.FC<{ banner: Banner }> = ({ banner: b }) => {
   const Icon = ICONS[b.icon || ''] || Sparkles;
   return (
     <span
-      className="flex h-full w-full items-center gap-3 p-4 text-left text-white sm:gap-5 sm:p-6"
+      className="flex h-full w-full items-center gap-3 p-4 text-left text-white sm:gap-5 sm:p-6 lg:gap-8 lg:p-10"
       style={{ background: `linear-gradient(135deg, ${color(b.color1, '#4c1d95')}, ${color(b.color2, '#1a1033')})` }}
     >
       <span className="min-w-0 flex-1">
@@ -59,11 +59,11 @@ const TextBanner: React.FC<{ banner: Banner }> = ({ banner: b }) => {
             )}
           </span>
         )}
-        {b.title && <span className="mt-2 line-clamp-2 block text-lg font-extrabold leading-tight sm:text-2xl">{b.title}</span>}
-        {b.subtitle && <span className="mt-1 line-clamp-2 block text-xs text-white/80 sm:text-sm">{b.subtitle}</span>}
+        {b.title && <span className="mt-2 line-clamp-2 block text-lg font-extrabold leading-tight sm:text-3xl lg:mt-3 lg:text-4xl">{b.title}</span>}
+        {b.subtitle && <span className="mt-1 line-clamp-2 block text-xs text-white/80 sm:text-sm lg:mt-2 lg:text-base">{b.subtitle}</span>}
       </span>
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-amber-300 sm:h-16 sm:w-16">
-        <Icon className="h-6 w-6 sm:h-8 sm:w-8" />
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-amber-300 sm:h-20 sm:w-20 lg:h-24 lg:w-24">
+        <Icon className="h-6 w-6 sm:h-10 sm:w-10 lg:h-12 lg:w-12" />
       </span>
     </span>
   );
@@ -111,9 +111,10 @@ const Slide: React.FC<{ banner: Banner; eager: boolean }> = ({ banner: b, eager 
 const AUTO_MS = 5000;
 
 /**
- * The admin's banners as a strip under the menu bar: one at a time on phones (swipe), two side by
- * side on wider screens. Same photo shape as the app (about 7 : 3), so a poster is never cropped
- * differently. Moves on its own every 5 s, but not while hovered, touched or focused.
+ * The admin's banners as a strip under the menu bar, one banner per page on every screen (swipe on
+ * phones, arrows on computers). Always the app's shape (7 : 3), the same frame the admin sets with
+ * "Adjust", so the picture is never cropped differently; on wide screens it is centred, at most
+ * 900 px wide. Moves on its own every 5 s, but not while hovered, touched or focused.
  */
 export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -183,7 +184,6 @@ export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
   }, [pages, goTo]);
 
   if (!count) return null;
-  const single = count === 1;
   const hold = () => {
     pausedUntil.current = Date.now() + 8000;
   };
@@ -195,7 +195,7 @@ export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
       className="mx-auto w-full max-w-7xl px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5 lg:px-8"
     >
       <div
-        className="relative"
+        className="relative mx-auto max-w-[900px]"
         onPointerEnter={(e) => {
           if (e.pointerType === 'mouse') hovered.current = true;
         }}
@@ -207,7 +207,7 @@ export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
       >
         <div
           ref={trackRef}
-          className={`no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain sm:gap-4 ${single ? 'md:justify-center' : ''}`}
+          className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain sm:gap-4"
         >
           {banners.map((b, i) => (
             <div
@@ -215,7 +215,7 @@ export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${count}`}
-              className={`w-full shrink-0 snap-start ${single ? 'md:max-w-[640px]' : 'md:w-[calc(50%-0.5rem)]'}`}
+              className="w-full shrink-0 snap-start"
             >
               <Slide banner={b} eager={i < 2} />
             </div>
