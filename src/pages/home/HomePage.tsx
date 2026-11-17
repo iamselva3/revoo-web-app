@@ -59,8 +59,9 @@ const WHY = [
 ];
 
 const SectionHeader: React.FC<{ title: string; subtitle?: string; action?: React.ReactNode }> = ({ title, subtitle, action }) => (
-  <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
-    <div>
+  <div className="mb-3 flex items-end justify-between gap-4 sm:mb-6">
+    {/* min-w-0: a long title wraps, so the action ("View all") always stays on screen */}
+    <div className="min-w-0 flex-1">
       <h2 className="text-xl font-bold tracking-tight text-ink dark:text-white sm:text-2xl">{title}</h2>
       {subtitle && <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400">{subtitle}</p>}
     </div>
@@ -106,17 +107,17 @@ export const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-14 pb-20 sm:space-y-20">
+    <div className="space-y-6 pb-20 sm:space-y-20">
       {/* 1. Offers (the admin's banners) right under the menu bar, then the hero */}
       <div>
         <HomeBanners banners={banners} />
         <section className="border-b border-slate-100 bg-gradient-to-br from-amber-50 via-white to-violet-50 dark:border-neutral-900 dark:from-neutral-950 dark:via-black dark:to-neutral-950">
-          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-10 pt-7 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-6 pt-5 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
             <div>
               <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/20 dark:bg-neutral-900 dark:text-amber-300">
                 <MapPin className="h-3.5 w-3.5" /> Free doorstep pickup across Tamil Nadu
               </p>
-              <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:text-5xl">
+              <h1 className="mt-3 text-[2rem] font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:mt-4 sm:text-5xl">
                 Sell your old{' '}
                 {/* All words share one slot sized by the longest, so the headline never re-wraps; the
                     bottom padding keeps the gradient under descenders (the "p" of "phone"). */}
@@ -144,20 +145,22 @@ export const HomePage: React.FC = () => {
                 <br />
                 for cash.
               </h1>
-              <p className="mt-4 max-w-md text-base text-slate-600 dark:text-neutral-300">
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-600 dark:text-neutral-300 sm:mt-4 sm:text-base">
                 Get your exact price in 60 seconds, a free pickup from your door, and payment before our agent leaves.
               </p>
-              {/* Side by side on every phone (the client's layout), wrapping only if there's truly no room */}
-              <div className="mt-7 flex flex-wrap gap-2.5 min-[360px]:flex-nowrap sm:gap-3">
-                <Link to="/sell" className="btn-genie shrink-0 !px-5 !text-base sm:!px-6">
+              {/* Side by side when they fit (the client's layout); on narrow or zoomed phones the second
+                  one wraps instead of making the page wider than the screen */}
+              <div className="mt-5 flex flex-wrap gap-2.5 sm:mt-7 sm:gap-3">
+                <Link to="/sell" className="btn-genie !px-5 !py-3 !text-base sm:!px-6 sm:!py-3.5">
                   Get your price <ArrowRight className="h-5 w-5" />
                 </Link>
-                <Link to="/track" className="btn-ghost shrink-0 !px-4 sm:!px-5">
+                <Link to="/track" className="btn-ghost !px-4 sm:!px-5">
                   Track a pickup
                 </Link>
               </div>
-              {/* Phones/tablets: the three promises as a compact row (the art panel is desktop only) */}
-              <ul className="mt-7 grid grid-cols-3 gap-2 lg:hidden">
+              {/* Tablets: the three promises as a compact row (desktop shows them on the art panel).
+                  Hidden on phones so the categories (Sell Mobile, Sell Laptop…) show on the first screen. */}
+              <ul className="mt-7 hidden grid-cols-3 gap-2 sm:grid lg:hidden">
                 {HERO_POINTS.map((p) => (
                   <li key={p.title} className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/70 bg-white/70 px-2 py-3 text-center backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/70">
                     <span className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${p.tone} text-white`}>
