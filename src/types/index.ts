@@ -41,15 +41,22 @@ export interface ModelWithVariants {
   minPrice: number;
 }
 
+/** A home-page banner set in the admin (the same ones the app shows). Text is optional: a banner
+ * can be just a photo (a poster with its own text). */
 export interface Banner {
   _id: string;
-  title: string;
+  tag?: string;
+  title?: string;
   subtitle?: string;
-  imageUrl: string;
-  ctaText?: string;
-  ctaLink?: string;
-  targetCategory?: string;
-  isActive: boolean;
+  badge?: string;
+  color1?: string;
+  color2?: string;
+  icon?: string;
+  imageUrl?: string;
+  /** An app route (/catalogue/brands, /buy…) or a full web address */
+  linkUrl?: string;
+  isPopupModal?: boolean;
+  isActive?: boolean;
   displayOrder?: number;
 }
 

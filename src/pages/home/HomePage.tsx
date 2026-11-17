@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, BadgeIndianRupee, ChevronRight, ShieldCheck, Star, Truck, MapPin } from 'lucide-react';
 import { catalogueApi } from '../../api/catalogue';
-import { Brand, CustomerReview } from '../../types';
+import { Banner, Brand, CustomerReview } from '../../types';
 import { usePageLoading } from '../../context/PageLoadingContext';
 import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
 import { BrandLogo } from '../../components/brand/BrandLogo';
 import { CategoryArt, CategoryArtKind } from '../../components/sell/CategoryArt';
 import { HeroDeviceStage } from '../../components/home/HeroDeviceStage';
+import { HomeBanners, showableBanners } from '../../components/home/HomeBanners';
 
 const CATEGORIES: Array<{
   id: CategoryArtKind;
@@ -72,16 +73,19 @@ export const HomePage: React.FC = () => {
   const { setIsPageLoading } = usePageLoading();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [reviews, setReviews] = useState<CustomerReview[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [wordIdx, setWordIdx] = useState(0);
 
   useEffect(() => {
     setIsPageLoading(true);
     // Top brands open the phone flow: phone brands only
-    Promise.all([catalogueApi.getBrands('phone').catch(() => []), catalogueApi.getReviews('sell')])
-      .then(([brandData, reviewData]) => {
+    // Banners load with the rest, so the hero never jumps down when they arrive
+    Promise.all([catalogueApi.getBrands('phone').catch(() => []), catalogueApi.getReviews('sell'), catalogueApi.getBanners()])
+      .then(([brandData, reviewData, bannerData]) => {
         setBrands(brandData);
         setReviews(reviewData);
+        setBanners(showableBanners(bannerData));
       })
       .catch((err) => console.error('Error loading home data:', err))
       .finally(() => {
@@ -103,73 +107,76 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-14 pb-20 sm:space-y-20">
-      {/* 1. Hero */}
-      <section className="border-b border-slate-100 bg-gradient-to-br from-amber-50 via-white to-violet-50 dark:border-neutral-900 dark:from-neutral-950 dark:via-black dark:to-neutral-950">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
-          <div>
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/20 dark:bg-neutral-900 dark:text-amber-300">
-              <MapPin className="h-3.5 w-3.5" /> Free doorstep pickup across Tamil Nadu
-            </p>
-            <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:text-5xl">
-              Sell your old{' '}
-              {/* All words share one slot sized by the longest, so the headline never re-wraps; the
-                  bottom padding keeps the gradient under descenders (the "p" of "phone"). */}
-              <span className="-mb-[0.18em] inline-grid whitespace-nowrap">
-                {HERO_WORDS.map((word, i) => {
-                  // The old word leaves first (quick fade up), then the new one rises in: never two
-                  // half-visible words on top of each other.
-                  const state =
-                    i === wordIdx
-                      ? 'opacity-100 translate-y-0 duration-300 delay-200'
-                      : i === (wordIdx + HERO_WORDS.length - 1) % HERO_WORDS.length
-                        ? 'opacity-0 -translate-y-2 duration-200'
-                        : 'opacity-0 translate-y-2 duration-0';
-                  return (
-                    <span
-                      key={word}
-                      aria-hidden={i !== wordIdx}
-                      className={`col-start-1 row-start-1 justify-self-start bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 bg-clip-text pb-[0.18em] text-transparent transition-[opacity,transform] ease-out motion-reduce:transition-none ${state}`}
-                    >
-                      {word}
+      {/* 1. Offers (the admin's banners) right under the menu bar, then the hero */}
+      <div>
+        <HomeBanners banners={banners} />
+        <section className="border-b border-slate-100 bg-gradient-to-br from-amber-50 via-white to-violet-50 dark:border-neutral-900 dark:from-neutral-950 dark:via-black dark:to-neutral-950">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
+            <div>
+              <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/20 dark:bg-neutral-900 dark:text-amber-300">
+                <MapPin className="h-3.5 w-3.5" /> Free doorstep pickup across Tamil Nadu
+              </p>
+              <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-ink dark:text-white sm:text-5xl">
+                Sell your old{' '}
+                {/* All words share one slot sized by the longest, so the headline never re-wraps; the
+                    bottom padding keeps the gradient under descenders (the "p" of "phone"). */}
+                <span className="-mb-[0.18em] inline-grid whitespace-nowrap">
+                  {HERO_WORDS.map((word, i) => {
+                    // The old word leaves first (quick fade up), then the new one rises in: never two
+                    // half-visible words on top of each other.
+                    const state =
+                      i === wordIdx
+                        ? 'opacity-100 translate-y-0 duration-300 delay-200'
+                        : i === (wordIdx + HERO_WORDS.length - 1) % HERO_WORDS.length
+                          ? 'opacity-0 -translate-y-2 duration-200'
+                          : 'opacity-0 translate-y-2 duration-0';
+                    return (
+                      <span
+                        key={word}
+                        aria-hidden={i !== wordIdx}
+                        className={`col-start-1 row-start-1 justify-self-start bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 bg-clip-text pb-[0.18em] text-transparent transition-[opacity,transform] ease-out motion-reduce:transition-none ${state}`}
+                      >
+                        {word}
+                      </span>
+                    );
+                  })}
+                </span>
+                <br />
+                for cash.
+              </h1>
+              <p className="mt-4 max-w-md text-base text-slate-600 dark:text-neutral-300">
+                Get your exact price in 60 seconds, a free pickup from your door, and payment before our agent leaves.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/sell" className="btn-genie !text-base">
+                  Get your price <ArrowRight className="h-5 w-5" />
+                </Link>
+                <Link to="/track" className="btn-ghost">
+                  Track a pickup
+                </Link>
+              </div>
+              {/* Phones/tablets: the three promises as a compact row (the art panel is desktop only) */}
+              <ul className="mt-7 grid grid-cols-3 gap-2 lg:hidden">
+                {HERO_POINTS.map((p) => (
+                  <li key={p.title} className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/70 bg-white/70 px-2 py-3 text-center backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/70">
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${p.tone} text-white`}>
+                      <p.icon className="h-4 w-4" />
                     </span>
-                  );
-                })}
-              </span>
-              <br />
-              for cash.
-            </h1>
-            <p className="mt-4 max-w-md text-base text-slate-600 dark:text-neutral-300">
-              Get your exact price in 60 seconds, a free pickup from your door, and payment before our agent leaves.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/sell" className="btn-genie !text-base">
-                Get your price <ArrowRight className="h-5 w-5" />
-              </Link>
-              <Link to="/track" className="btn-ghost">
-                Track a pickup
-              </Link>
+                    <span className="text-[11px] font-semibold leading-tight text-ink dark:text-white">{p.title}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            {/* Phones/tablets: the three promises as a compact row (the art panel is desktop only) */}
-            <ul className="mt-7 grid grid-cols-3 gap-2 lg:hidden">
-              {HERO_POINTS.map((p) => (
-                <li key={p.title} className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/70 bg-white/70 px-2 py-3 text-center backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/70">
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${p.tone} text-white`}>
-                    <p.icon className="h-4 w-4" />
-                  </span>
-                  <span className="text-[11px] font-semibold leading-tight text-ink dark:text-white">{p.title}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Desktop art: 3D device stage for the current word, with the three promises floating around it */}
-          <div className="relative hidden h-[460px] lg:block" aria-hidden="true">
-            <HeroDeviceStage kinds={HERO_ART} index={wordIdx} />
-            {/* In a corner, so it never covers the device */}
-            <HeroCard point={HERO_POINTS[1]} className="bottom-2 right-0" />
+            {/* Desktop art: 3D device stage for the current word, with the three promises floating around it */}
+            <div className="relative hidden h-[460px] lg:block" aria-hidden="true">
+              <HeroDeviceStage kinds={HERO_ART} index={wordIdx} />
+              {/* In a corner, so it never covers the device */}
+              <HeroCard point={HERO_POINTS[1]} className="bottom-2 right-0" />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* 2. Sell your gadgets (category cards) */}
       <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
