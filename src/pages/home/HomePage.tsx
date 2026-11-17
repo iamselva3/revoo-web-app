@@ -111,7 +111,7 @@ export const HomePage: React.FC = () => {
       <div>
         <HomeBanners banners={banners} />
         <section className="border-b border-slate-100 bg-gradient-to-br from-amber-50 via-white to-violet-50 dark:border-neutral-900 dark:from-neutral-950 dark:via-black dark:to-neutral-950">
-          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-10 pt-7 sm:px-6 sm:py-16 lg:grid-cols-2 lg:px-8">
             <div>
               <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/20 dark:bg-neutral-900 dark:text-amber-300">
                 <MapPin className="h-3.5 w-3.5" /> Free doorstep pickup across Tamil Nadu
@@ -147,11 +147,12 @@ export const HomePage: React.FC = () => {
               <p className="mt-4 max-w-md text-base text-slate-600 dark:text-neutral-300">
                 Get your exact price in 60 seconds, a free pickup from your door, and payment before our agent leaves.
               </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link to="/sell" className="btn-genie !text-base">
+              {/* Side by side on every phone (the client's layout), wrapping only if there's truly no room */}
+              <div className="mt-7 flex flex-wrap gap-2.5 min-[360px]:flex-nowrap sm:gap-3">
+                <Link to="/sell" className="btn-genie shrink-0 !px-5 !text-base sm:!px-6">
                   Get your price <ArrowRight className="h-5 w-5" />
                 </Link>
-                <Link to="/track" className="btn-ghost">
+                <Link to="/track" className="btn-ghost shrink-0 !px-4 sm:!px-5">
                   Track a pickup
                 </Link>
               </div>

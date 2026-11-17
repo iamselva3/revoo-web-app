@@ -90,7 +90,7 @@ const Slide: React.FC<{ banner: Banner; eager: boolean }> = ({ banner: b, eager 
       <TextBanner banner={b} />
     );
   const frame =
-    'block aspect-[7/3] w-full overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/10 sm:rounded-3xl';
+    'block aspect-[7/3] w-full overflow-hidden bg-slate-100 dark:bg-neutral-900 sm:rounded-3xl sm:ring-1 sm:ring-black/5 sm:dark:ring-white/10';
   const clickable = `${frame} transition-shadow hover:shadow-card-hover focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/60`;
   const link = bannerLink(b.linkUrl);
   if (link.href) {
@@ -114,7 +114,8 @@ const AUTO_MS = 5000;
 
 /**
  * The admin's banners as a strip under the menu bar, one banner per page on every screen (swipe on
- * phones, arrows on computers), always the full width of the page and the photo's own 7 : 3 shape
+ * phones, arrows on computers). Phones: edge to edge with square corners (the client's layout);
+ * larger screens: a rounded card the full width of the page. Always the photo's own 7 : 3 shape
  * (the frame the admin sets with "Adjust"), so it fits exactly. Moves on its own every 5 s, but
  * not while hovered, touched or focused.
  */
@@ -194,7 +195,7 @@ export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
     <section
       aria-roledescription="carousel"
       aria-label="Offers"
-      className="mx-auto w-full max-w-7xl px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5 lg:px-8"
+      className="mx-auto w-full max-w-7xl pb-3 sm:px-6 sm:pb-5 sm:pt-5 lg:px-8"
     >
       <div
         className="relative"
@@ -209,7 +210,7 @@ export const HomeBanners: React.FC<{ banners: Banner[] }> = ({ banners }) => {
       >
         <div
           ref={trackRef}
-          className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain sm:gap-4"
+          className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain sm:gap-4"
         >
           {banners.map((b, i) => (
             <div
