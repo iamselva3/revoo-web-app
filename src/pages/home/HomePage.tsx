@@ -107,7 +107,7 @@ export const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 pb-20 sm:space-y-20">
+    <div className="space-y-14 pb-20 sm:space-y-20">
       {/* 1. Offers (the admin's banners) right under the menu bar, then the hero */}
       <div>
         <HomeBanners banners={banners} />
@@ -182,8 +182,9 @@ export const HomePage: React.FC = () => {
         </section>
       </div>
 
-      {/* 2. Sell your gadgets (category cards) */}
-      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* 2. Sell your gadgets (category cards): close under the hero on phones, so Sell Mobile and
+          Sell Laptop show on the first screen */}
+      <section className="mx-auto w-full max-w-7xl px-4 !mt-6 sm:px-6 sm:!mt-20 lg:px-8">
         <SectionHeader
           title="Choose a category to sell"
           subtitle="Phones, laptops, tablets and TVs, all picked up free from your door."
