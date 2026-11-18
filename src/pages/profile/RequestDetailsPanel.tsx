@@ -15,6 +15,7 @@ import {
 import { requestApi } from '../../api/requests';
 import { BuybackRequest } from '../../types';
 import { DeviceImage } from '../sell/components/shared';
+import { BookingQr } from '../../components/common/BookingQr';
 import {
   PROGRESS_STEPS,
   TONE_CLASSES,
@@ -24,6 +25,7 @@ import {
   formatINR,
   formatPhone,
   formatPickupDate,
+  isClosed,
   isStopped,
   payoutLabel,
   progressIndex,
@@ -149,6 +151,9 @@ export const RequestDetailsPanel: React.FC<RequestDetailsPanelProps> = ({ reques
               </div>
             </div>
           </div>
+
+          {/* For the pickup partner: they scan it at the door to open this booking */}
+          {r.requestNumber && !isClosed(r.status) && <BookingQr requestNumber={r.requestNumber} />}
 
           {/* Progress */}
           {stopped ? (

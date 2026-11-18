@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
@@ -20,6 +20,9 @@ import { ProfilePage } from './pages/profile/ProfilePage';
 import { TermsPage } from './pages/legal/TermsPage';
 import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
 
+// Pickup partner app (genietn.in/partner): its own pages and sign-in, loaded only when opened
+const PartnerApp = lazy(() => import('./partner/PartnerApp'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -40,6 +43,14 @@ export const App: React.FC = () => {
               <PageLoadingProvider>
                 <ScrollToTop />
                 <Routes>
+                  <Route
+                    path="/partner/*"
+                    element={
+                      <Suspense fallback={<div className="min-h-[100dvh] bg-slate-50 dark:bg-black" />}>
+                        <PartnerApp />
+                      </Suspense>
+                    }
+                  />
                   <Route path="/" element={<Layout />}>
                     <Route index element={<HomePage />} />
                     <Route path="sell" element={<SellDevicePage />} />

@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { BuybackRequest } from '../../types';
 import { usePageLoading } from '../../context/PageLoadingContext';
 import { PageLoadingSkeleton } from '../../components/common/PageLoadingSkeleton';
+import { BookingQr } from '../../components/common/BookingQr';
+import { isClosed } from '../profile/requestFormat';
 import {
   Truck,
   Search,
@@ -176,6 +178,11 @@ export const TrackOrderPage: React.FC = () => {
               </span>
             </div>
           </div>
+
+          {/* For the pickup partner: they scan it at the door to open this booking */}
+          {selectedRequest.requestNumber && !isClosed(selectedRequest.status) && (
+            <BookingQr requestNumber={selectedRequest.requestNumber} />
+          )}
 
           {/* Device & Valuation summary */}
           {(() => {
